@@ -22,7 +22,7 @@ export async function* generateScriptStream(
       'content-type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
+      model: 'claude-3-5-sonnet-20241022',
       max_tokens: 4096,
       stream: true,
       system: buildSystemPrompt(params),
@@ -58,6 +58,10 @@ export async function* generateScriptStream(
 
       try {
         const event = JSON.parse(data)
+        // API 에러 이벤트 처리
+        if (event.type === 'error') {
+          throw new Error(event.error?.message || 'Anthropic API error')
+        }
         if (event.type === 'content_block_delta' && event.delta?.type === 'text_delta') {
           textBuffer += event.delta.text
 
