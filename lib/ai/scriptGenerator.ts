@@ -20,7 +20,6 @@ export async function* generateScriptStream(
       'x-api-key': apiKey,
       'anthropic-version': '2023-06-01',
       'content-type': 'application/json',
-      'anthropic-beta': 'interleaved-thinking-2025-05-14',
     },
     body: JSON.stringify({
       model: 'claude-sonnet-4-6',
