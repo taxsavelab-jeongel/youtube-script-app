@@ -73,12 +73,13 @@ export async function POST(request: NextRequest) {
 
           controller.close()
         } catch (error) {
+          console.error('Stream error:', error)
           const errEvent = {
             type: 'error',
             code: 'GENERATION_FAILED',
             message:
               error instanceof Error
-                ? error.message
+                ? `${error.name}: ${error.message}`
                 : '스크립트 생성 중 오류가 발생했습니다.',
           }
           controller.enqueue(
