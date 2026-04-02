@@ -16,7 +16,7 @@ export const inheritanceGift: TaxSavingItem[] = [
     targetAudience: ["heir", "business_owner"],
     name: "가업상속공제",
     shortDescription: "10년↑ 경영 중소·중견기업 최대 600억 상속공제",
-    fullDescription: "피상속인이 10년 이상 경영한 중소기업 또는 매출 5,000억 미만 중견기업을 상속인에게 승계할 때, 가업 영위 기간에 따라 최대 600억원까지 상속재산에서 공제합니다. 사후관리 7년간 업종·지분·고용·자산 유지 필수.",
+    fullDescription: "피상속인이 10년 이상 경영한 중소기업 또는 매출 5,000억 미만 중견기업을 상속인에게 승계할 때, 가업 영위 기간에 따라 최대 600억원까지 상속재산에서 공제합니다. 사후관리 5년간 업종·지분·고용·자산 유지 필수.",
     tags: ["가업승계", "상속공제", "중소기업", "중견기업", "사후관리"],
     impactLevel: "very_high",
     maxDeductionAmount: 60_000_000_000, // 600억
@@ -26,7 +26,7 @@ export const inheritanceGift: TaxSavingItem[] = [
       { id: "req_2", description: "중소기업 또는 매출 5천억 미만 중견기업", type: "business_type", value: "중소기업 또는 중견기업(매출 5천억 미만)", critical: true },
       { id: "req_3", description: "상속인 2년 이상 가업 종사", type: "period", value: "상속개시 전 2년 이상", critical: true },
       { id: "req_4", description: "피상속인 대표이사 재직", type: "employment", critical: true },
-      { id: "req_5", description: "상속인 상속세 신고기한 내 임원 취임, 2년 내 대표이사 취임", type: "employment", critical: true },
+      { id: "req_5", description: "상속인 상속세 신고기한 내 임원 취임, 상속개시 후 2년 내 대표이사 취임", type: "employment", critical: true },
     ],
     exclusions: [
       "상속개시일 속하는 사업연도 직전 3년 평균 매출 5천억 이상 중견기업",
@@ -37,12 +37,12 @@ export const inheritanceGift: TaxSavingItem[] = [
       { law: "상속세 및 증여세법", article: "제18조의2", url: "https://www.law.go.kr", effectiveDate: "2026-01-01" },
     ],
     postManagement: {
-      period: 7,
+      period: 5,
       requirements: [
-        { item: "업종 유지", standard: "표준산업분류 중분류 내 동일 업종", penalty: "공제 전액 추징" },
+        { item: "업종 유지", standard: "표준산업분류 중분류 내 동일 업종, 1년 이상 휴·폐업 금지", penalty: "공제 전액 추징" },
         { item: "지분 유지", standard: "상속받은 지분 유지", penalty: "처분 비율만큼 추징" },
-        { item: "고용 유지", standard: "정규직 수 연평균 100% 유지", penalty: "미달 비율만큼 추징" },
-        { item: "자산 유지", standard: "가업용 자산 20% 이상 처분 금지", penalty: "처분 비율만큼 추징" },
+        { item: "고용 유지", standard: "5년 통산 정규직 수·총급여액 90% 이상 유지", penalty: "미달 비율만큼 추징" },
+        { item: "자산 유지", standard: "가업용 자산 40% 이상 처분 금지", penalty: "처분 비율만큼 추징" },
         { item: "대표이사 유지", standard: "상속인이 대표이사 유지", penalty: "공제 전액 추징" },
       ],
     },
@@ -64,7 +64,7 @@ export const inheritanceGift: TaxSavingItem[] = [
       "상속인 가업 종사 기간 확인 (2년 이상)",
       "가업 자산 가치 평가 (감정평가)",
       "상속세 신고 시 가업상속공제 신청",
-      "사후관리 7년 계획 수립",
+      "사후관리 5년 계획 수립",
     ],
     requiredDocuments: [
       "사업자등록증 사본", "법인등기부등본", "주주명부",
@@ -78,7 +78,7 @@ export const inheritanceGift: TaxSavingItem[] = [
       estimatedViews: "high",
     },
     warnings: [
-      "사후관리 7년 중 요건 위반 시 공제 전액 추징 가능",
+      "사후관리 5년 중 요건 위반 시 공제 전액 추징 가능",
       "상속인이 대표이사직을 사임하면 즉시 추징",
       "부동산 임대업은 가업에 해당하지 않을 수 있음",
     ],
@@ -86,6 +86,7 @@ export const inheritanceGift: TaxSavingItem[] = [
       "상속인의 가업 종사 기간(2년)을 미리 준비하지 않음",
       "사후관리 기간 중 업종 변경하여 추징당함",
       "가업용 자산과 비가업용 자산 구분을 잘못함",
+      "구법(7년) 기준으로 사후관리 계획을 수립함 — 현행 5년 기준 적용 필요",
     ],
     relatedItems: ["gift_business_succession_special", "gift_startup_fund"],
   },
@@ -112,19 +113,19 @@ export const inheritanceGift: TaxSavingItem[] = [
       { id: "req_3", description: "수증자 18세 이상 거주자", type: "age", value: "18세 이상", critical: true },
       { id: "req_4", description: "증여세 신고기한까지 가업 종사", type: "employment", critical: true },
       { id: "req_5", description: "증여일부터 3년 내 대표이사 취임", type: "period", value: "3년 이내", critical: true },
-      { id: "req_6", description: "5년까지 대표이사 유지", type: "period", value: "5년", critical: true },
+      { id: "req_6", description: "대표이사 취임 후 5년간 유지", type: "period", value: "5년", critical: true },
     ],
     conflicts: ["gift_startup_fund"], // 창업자금 특례와 중복 불가
     legalBasis: [
       { law: "조세특례제한법", article: "제30조의6", url: "https://www.law.go.kr/LSW//lsLawLinkInfo.do?lsJoLnkSeq=1001023551&lsId=001584&chrClsCd=010202", effectiveDate: "2026-01-01" },
     ],
     postManagement: {
-      period: 7,
+      period: 5,
       requirements: [
-        { item: "가업 유지", standard: "증여받은 가업 계속 영위", penalty: "특례세율 취소, 일반세율로 재계산 추징" },
+        { item: "가업 유지", standard: "증여받은 가업 계속 영위, 1년 이상 휴·폐업 금지", penalty: "특례세율 취소, 일반세율로 재계산 추징" },
         { item: "지분 유지", standard: "증여받은 지분 유지", penalty: "처분 비율만큼 추징" },
-        { item: "고용 유지", standard: "정규직 100% 유지", penalty: "미달 비율만큼 추징" },
-        { item: "대표이사", standard: "3년 내 취임, 5년 유지", penalty: "특례 전액 취소" },
+        { item: "고용 유지", standard: "5년 통산 정규직 수·총급여액 90% 이상", penalty: "미달 비율만큼 추징" },
+        { item: "대표이사", standard: "3년 내 취임, 취임 후 5년 유지", penalty: "특례 전액 취소" },
       ],
     },
     calculationParams: [
@@ -142,18 +143,18 @@ export const inheritanceGift: TaxSavingItem[] = [
       "증여세 과세특례 신청서 작성",
       "증여세 신고기한 내 신청",
       "3년 내 대표이사 취임 계획 수립",
-      "7년 사후관리 체크리스트 수립",
+      "5년 사후관리 체크리스트 수립",
     ],
     contentHook: {
       title: "생전 증여 vs 사후 상속, 100억 회사의 최적 선택은?",
-      hook: "상속 대기하면 50%세율, 생전 증여하면 10%!",
+      hook: "상속 대기하면 50%세율, 생전 증여하면 10%! 사후관리도 5년으로 단축!",
       targetKeyword: "가업승계 증여세 과세특례",
       estimatedViews: "high",
     },
     warnings: [
       "창업자금 증여세 과세특례와 중복 적용 불가",
       "증여세 신고기한까지 특례 신청하지 않으면 혜택 소멸",
-      "사후관리 위반 시 일반세율로 재계산되어 가산세까지 부담",
+      "사후관리(5년) 위반 시 일반세율로 재계산되어 가산세까지 부담",
     ],
     relatedItems: ["inheritance_business_deduction", "gift_startup_fund", "gift_family_exemption"],
   },
