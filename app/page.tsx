@@ -46,6 +46,15 @@ export default function Home() {
           </Link>
         </div>
 
+        <Link
+          href="/admin/review"
+          className="block p-4 bg-gray-800 text-white rounded-2xl shadow-sm hover:bg-gray-900 transition-colors text-center"
+        >
+          <span className="text-lg">🔍</span>
+          <span className="font-medium ml-2">세무사 감수 관리 (관리자)</span>
+          <span className="text-xs text-gray-400 ml-2">80개 항목 검토 현황</span>
+        </Link>
+
         <p className="text-xs text-gray-400">
           * 본 서비스는 정보 제공 목적이며, 정확한 세무 상담은 세무사에게 받으세요
         </p>
