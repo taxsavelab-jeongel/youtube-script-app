@@ -64,13 +64,19 @@ export const INHERITANCE_TAX_BRACKETS_2026 = [
   { min: 3_000_000_000, max: Infinity,          rate: 0.50 },
 ] as const
 
-/** 2026년 양도소득세율 (기본) */
+/** 2026년 양도소득세율 (소득세법 제104조 기준) */
 export const CAPITAL_GAINS_TAX_RATES_2026 = {
-  under1Year: 0.45,       // 1년 미만 보유
-  under2Years: 0.35,      // 1~2년 보유 (기본세율과 비교 중 높은것)
-  over2Years: "기본세율",   // 2년 이상 보유 (누진세율 적용)
-  multiHome2: 0.20,       // 2주택 중과 (기본세율+20%p, 현재 유예중)
-  multiHome3: 0.30,       // 3주택+ 중과 (기본세율+30%p, 현재 유예중)
+  // 토지·건물 (주택 외)
+  land_under1Year: 0.50,    // 1년 미만 보유: 50%
+  land_under2Years: 0.40,   // 1~2년 보유: 40%
+  // 주택·조합원입주권·분양권
+  house_under1Year: 0.70,   // 1년 미만 보유: 70%
+  house_under2Years: 0.60,  // 1~2년 보유: 60%
+  // 2년 이상 보유
+  over2Years: "기본세율(6~45%)",  // 2년 이상 보유 (누진세율 적용)
+  // 다주택 중과 (조정대상지역, 2026.5.9까지 유예 중)
+  multiHome2: 0.20,       // 2주택 중과: 기본세율+20%p (유예중)
+  multiHome3: 0.30,       // 3주택+ 중과: 기본세율+30%p (유예중)
 } as const
 
 /** 신고 일정 캘린더 */
