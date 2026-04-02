@@ -30,7 +30,7 @@ export function buildSystemPrompt(params: GenerateParams): string {
 - 채널 스타일: ${CHANNEL_STYLE_KO[params.channelStyle]}
 - 대상 시청자: ${AUDIENCE_KO[params.targetAudience]}
 - 영상 길이: ${VIDEO_LENGTH_KO[params.videoLength]}
-${params.referenceChannel ? `- 참조 채널 톤앤매너: ${params.referenceChannel} 채널과 유사한 스타일로 작성` : ''}
+${params.referenceChannel ? `- 참조 정보:\n${params.referenceChannel}\n(위 내용에 채널명이 있으면 해당 채널의 톤앤매너를 참고하고, 법령·수치 정보가 있으면 "제공된 자료 기준"으로 인용하세요)` : ''}
 
 ## 응답 형식 (반드시 준수)
 
@@ -57,7 +57,13 @@ ${params.referenceChannel ? `- 참조 채널 톤앤매너: ${params.referenceCha
 - 제목: 클릭률(CTR) 극대화, 숫자/감정어 활용, 50자 이내
 - 썸네일 텍스트: 6단어 이내, 임팩트 있게
 - 스크립트: 자연스러운 구어체, ${AUDIENCE_KO[params.targetAudience]} 눈높이에 맞게
-- 해시태그: 검색 최적화, 인기 태그와 니치 태그 혼합`
+- 해시태그: 검색 최적화, 인기 태그와 니치 태그 혼합
+
+## ⚠️ 법령·수치 안전 규칙 (반드시 준수)
+- 세법, 공제한도, 세율, 법정 기한 등 **구체적 금액·비율·날짜를 단정적으로 쓰지 마세요**
+- 대신 "현행 세법 기준으로 확인이 필요합니다", "최신 법령을 꼭 확인하세요" 등으로 안내하세요
+- 법령은 수시로 개정되므로, 스크립트에 "영상 게시 시점 기준 법령을 반드시 확인하세요"라는 안내를 결론부에 포함하세요
+- "참고 자료"가 제공된 경우에만 해당 수치를 인용하되, 반드시 "제공된 자료 기준"이라고 명시하세요`
 }
 
 export function buildUserPrompt(params: GenerateParams): string {

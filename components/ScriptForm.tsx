@@ -148,22 +148,22 @@ export default function ScriptForm({
         </div>
       </div>
 
-      {/* 참조 채널 */}
+      {/* 참조 채널 / 참고 자료 */}
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-1.5">
-          참조 채널{' '}
+          참조 채널 / 참고 자료{' '}
           <span className="text-gray-400 font-normal">(선택)</span>
         </label>
-        <input
-          type="text"
+        <textarea
           value={params.referenceChannel ?? ''}
           onChange={(e) => onChange('referenceChannel', e.target.value)}
-          placeholder="예: 정엘가업승계연구소"
+          placeholder={"예: 정엘가업승계연구소 채널 스타일\n\n참고 자료: 2026년 기준 가업상속공제 최대 600억원, 적용 요건..."}
           disabled={isGenerating}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-400 transition-colors"
+          rows={3}
+          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-400 transition-colors resize-none"
         />
         <p className="text-xs text-gray-400 mt-1">
-          해당 채널의 톤앤매너를 참고하여 스크립트를 작성합니다
+          채널 톤앤매너 참조 + 최신 법령/수치를 입력하면 정확한 스크립트가 생성됩니다
         </p>
       </div>
 
