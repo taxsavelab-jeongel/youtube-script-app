@@ -5,8 +5,8 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'YouTube 스크립트 생성기',
-  description: 'AI가 유튜브 영상 스크립트, 제목, 썸네일 아이디어를 자동 생성합니다',
+  title: 'AI 절세 컨설팅 & 유튜브 콘텐츠 플랫폼',
+  description: '2026년 최신 세법 기준 AI 맞춤 절세 전략 추천 + 유튜브 절세 콘텐츠 자동 생성',
 }
 
 export default function RootLayout({

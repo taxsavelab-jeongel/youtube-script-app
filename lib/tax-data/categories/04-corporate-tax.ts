@@ -1,0 +1,147 @@
+// ============================================================
+// 04. 법인세 절세 항목
+// ============================================================
+
+import type { TaxSavingItem } from "@/types/tax-database"
+
+export const corporateTax: TaxSavingItem[] = [
+  {
+    id: "corp_startup_reduction",
+    version: "2026.1", lastUpdated: "2026-01-01",
+    category: "corporate", subcategory: "창업감면",
+    savingType: "reduction", targetAudience: ["corporation", "youth"],
+    name: "창업중소기업 세액감면",
+    shortDescription: "창업 후 5년간 법인세 50~100% 감면",
+    fullDescription: "수도권 과밀억제권역 외 창업 시 5년간 법인세 50~100% 감면. 청년(만15~34세)은 비수도권 100%, 수도권외곽 75%, 과밀권역내 50%. 2026년부터 청년 수도권외곽 감면율 75%로 조정.",
+    tags: ["창업감면", "중소기업", "청년창업", "법인세감면"],
+    impactLevel: "very_high", maxSavingAmount: 100_000_000, applicableRate: "50~100%",
+    requirements: [
+      { id: "req_1", description: "중소기업 창업", type: "business_type", critical: true },
+      { id: "req_2", description: "조세특례제한법 §6③ 업종 해당", type: "business_type", value: "제조업, 건설업 등 18개 업종", critical: true },
+    ],
+    legalBasis: [{ law: "조세특례제한법", article: "제6조", url: "https://www.law.go.kr/LSW//lsLawLinkInfo.do?lsJoLnkSeq=900239530&chrClsCd=010202&lsId=001584", effectiveDate: "2026-01-01" }],
+    calculationParams: [
+      { id: "corp_tax", label: "법인세 산출세액", type: "number", unit: "원", required: true },
+      { id: "region", label: "사업장 소재지", type: "select", options: [
+        { label: "수도권 과밀억제권역", value: "capital_metro" },
+        { label: "수도권 (과밀 외)", value: "capital_non_metro" },
+        { label: "비수도권", value: "non_capital" },
+      ], required: true },
+      { id: "is_youth", label: "청년 대표 여부", type: "boolean", required: true },
+    ],
+    calculationFormula: "감면세액 = 산출세액 × 감면율(50~100%). 감면 한도: 연 1억원 (근로자 감소 시 차감)",
+    urgency: "year_round", difficulty: "medium",
+    steps: ["업종 해당 여부 확인 (18개 업종)", "청년 해당 여부 확인 (만15~34세, 병역 최대 6년 추가)", "법인세 신고 시 세액감면 신청서 별도 제출"],
+    contentHook: { title: "청년 사장님, 5년간 법인세 0원 가능합니다", hook: "수도권 밖에서 창업하면 5년간 세금 100% 면제!", targetKeyword: "창업중소기업 세액감면 2026", estimatedViews: "high" },
+  },
+  {
+    id: "corp_sme_special_reduction",
+    version: "2026.1", lastUpdated: "2026-01-01",
+    category: "corporate", subcategory: "중소기업 감면",
+    savingType: "reduction", targetAudience: ["corporation", "sole_proprietor"],
+    name: "중소기업 특별세액감면",
+    shortDescription: "업종·지역별 법인세/소득세 5~30% 감면 (2028년까지 연장)",
+    fullDescription: "중소기업이 제조업, 도소매업, 음식점업 등 감면 대상 업종을 영위하는 경우 소재지와 업종에 따라 소득세·법인세를 5~30% 감면. 2028년 12월 31일까지 연장 적용.",
+    tags: ["중소기업", "특별세액감면", "법인세감면", "소득세감면"],
+    impactLevel: "high", applicableRate: "5~30%",
+    requirements: [
+      { id: "req_1", description: "중소기업기본법상 중소기업", type: "business_type", critical: true },
+      { id: "req_2", description: "감면 대상 업종 영위", type: "business_type", critical: true },
+    ],
+    legalBasis: [{ law: "조세특례제한법", article: "제7조", effectiveDate: "2026-01-01", expiryDate: "2028-12-31" }],
+    calculationParams: [
+      { id: "tax_amount", label: "산출세액", type: "number", unit: "원", required: true },
+      { id: "business_type", label: "업종", type: "select", options: [
+        { label: "제조업", value: "manufacturing" },
+        { label: "도소매업", value: "retail" },
+        { label: "음식점업", value: "restaurant" },
+        { label: "건설업", value: "construction" },
+        { label: "기타", value: "other" },
+      ], required: true },
+      { id: "region", label: "소재지", type: "select", options: [
+        { label: "수도권", value: "capital" },
+        { label: "비수도권", value: "non_capital" },
+      ], required: true },
+    ],
+    calculationFormula: "감면세액 = 산출세액 × 감면율(업종·지역별 5~30%)",
+    urgency: "year_round", difficulty: "easy",
+    steps: ["업종 및 소재지 감면율 확인", "법인세/소득세 신고 시 감면 신청서 제출"],
+  },
+  {
+    id: "corp_rd_credit",
+    version: "2026.1", lastUpdated: "2026-01-01",
+    category: "corporate", subcategory: "R&D 세액공제",
+    savingType: "credit", targetAudience: ["corporation"],
+    name: "연구인력개발비 세액공제",
+    shortDescription: "R&D 비용의 최대 25% 세액공제",
+    fullDescription: "연구소/전담부서 보유 기업이 지출한 연구인력개발비에 대해 세액공제. 중소기업은 당기분 25%, 대기업은 증가분 기준 적용. 신성장동력·원천기술은 최대 30~40%.",
+    tags: ["R&D", "연구개발", "세액공제", "연구소"],
+    impactLevel: "high", applicableRate: "중소기업 당기분 25%",
+    requirements: [
+      { id: "req_1", description: "기업부설연구소 또는 연구개발전담부서 보유", type: "other", critical: true },
+    ],
+    legalBasis: [{ law: "조세특례제한법", article: "제10조", effectiveDate: "2026-01-01" }],
+    calculationParams: [
+      { id: "rd_expense", label: "R&D 비용", type: "number", unit: "원", required: true },
+      { id: "company_size", label: "기업 규모", type: "select", options: [
+        { label: "중소기업", value: "sme" },
+        { label: "중견기업", value: "mid" },
+        { label: "대기업", value: "large" },
+      ], required: true },
+    ],
+    calculationFormula: "공제액 = R&D비용 × 공제율(중소 25%, 중견·대기업 증가분방식)",
+    urgency: "year_round", difficulty: "hard",
+    steps: ["기업부설연구소/전담부서 인정 신청", "R&D 비용 집계 및 구분", "법인세 신고 시 세액공제 신청"],
+    contentHook: { title: "연구소 하나 만들면 세금 25% 돌려받는다", hook: "직원 3명이면 연구소 설립 가능, R&D 세액공제 꿀팁!", targetKeyword: "연구개발비 세액공제", estimatedViews: "medium" },
+  },
+  {
+    id: "corp_employment_credit",
+    version: "2026.1", lastUpdated: "2026-01-01",
+    category: "corporate", subcategory: "고용 세액공제",
+    savingType: "credit", targetAudience: ["corporation", "sole_proprietor"],
+    name: "고용증대 세액공제",
+    shortDescription: "신규 고용 1인당 최대 1,550만원 세액공제 (3년간)",
+    fullDescription: "전년 대비 상시근로자 수가 증가한 경우, 증가 인원 1인당 중소기업 기준 수도권 950만원, 비수도권 1,100만원 공제 (3년간). 청년·장애인·경력단절여성은 수도권 1,450만원, 비수도권 1,550만원.",
+    tags: ["고용증대", "세액공제", "채용", "일자리"],
+    impactLevel: "high", maxSavingAmount: 15_500_000, applicableRate: "1인당 950~1,550만원 (3년)",
+    requirements: [
+      { id: "req_1", description: "전년 대비 상시근로자 수 증가", type: "employment", critical: true },
+    ],
+    legalBasis: [{ law: "조세특례제한법", article: "제29조의7", effectiveDate: "2026-01-01" }],
+    calculationParams: [
+      { id: "new_employees", label: "신규 고용 인원", type: "number", unit: "명", required: true },
+      { id: "youth_employees", label: "청년 고용 인원", type: "number", unit: "명", required: false },
+      { id: "region", label: "사업장 소재지", type: "select", options: [
+        { label: "수도권", value: "capital" },
+        { label: "비수도권", value: "non_capital" },
+      ], required: true },
+    ],
+    calculationFormula: "공제액 = 일반 증가인원 × 950~1,100만 + 청년 증가인원 × 1,450~1,550만 (3년간)",
+    urgency: "year_round", difficulty: "medium",
+    steps: ["전년 대비 고용 증가 확인", "청년·장애인 등 우대 대상 구분", "법인세 신고 시 세액공제 신청"],
+  },
+  {
+    id: "corp_ceo_salary_design",
+    version: "2026.1", lastUpdated: "2026-01-01",
+    category: "corporate", subcategory: "급여설계",
+    savingType: "split", targetAudience: ["business_owner", "corporation"],
+    name: "대표이사 급여 최적 설계",
+    shortDescription: "법인세와 소득세의 교차점에서 급여 최적화",
+    fullDescription: "대표이사 급여를 너무 낮추면 법인 이익이 커져 법인세 부담 증가, 너무 높이면 소득세 부담 증가. 2026년 법인세율 인상에 맞춰 최적 급여 구간을 재설계하여 법인세+소득세 합계를 최소화하는 전략.",
+    tags: ["대표이사", "급여설계", "법인세", "소득세", "최적화"],
+    impactLevel: "high", applicableRate: "법인세 10~25% vs 소득세 6~45%",
+    requirements: [{ id: "req_1", description: "법인 대표이사", type: "employment", critical: true }],
+    legalBasis: [
+      { law: "법인세법", article: "제55조", effectiveDate: "2026-01-01" },
+      { law: "소득세법", article: "제55조", effectiveDate: "2026-01-01" },
+    ],
+    calculationParams: [
+      { id: "corp_profit", label: "법인 세전이익 (급여 반영 전)", type: "number", unit: "원", required: true },
+      { id: "ceo_salary", label: "대표이사 연봉", type: "number", unit: "원", required: true },
+    ],
+    calculationFormula: "법인세(이익-급여) + 소득세(급여) 합계를 최소화하는 급여 금액 탐색",
+    urgency: "year_round", difficulty: "hard",
+    steps: ["법인 예상 이익 추정", "급여 구간별 세금 합계 시뮬레이션", "4대보험료까지 고려한 최적점 도출", "정관에 보수 한도 반영"],
+    contentHook: { title: "사장님 월급, 얼마가 최적인지 계산해드립니다", hook: "급여 500만원 올리면 세금이 300만원 줄어드는 마법!", targetKeyword: "대표이사 급여 최적화", estimatedViews: "high" },
+  },
+]
