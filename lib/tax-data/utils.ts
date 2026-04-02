@@ -21,6 +21,7 @@ import { financialInvestment } from "./categories/09-financial-investment"
 import { financialInvestmentExtra } from "./categories/09-financial-investment-extra"
 import { specialCases } from "./categories/10-special-cases"
 import { specialCasesExtra } from "./categories/10-special-cases-extra"
+import { smeOwner } from "./categories/11-sme-owner"
 
 /** 전체 절세 항목 목록 */
 export function getAllItems(): TaxSavingItem[] {
@@ -43,6 +44,7 @@ export function getAllItems(): TaxSavingItem[] {
     ...financialInvestmentExtra,
     ...specialCases,
     ...specialCasesExtra,
+    ...smeOwner,
   ]
 }
 
