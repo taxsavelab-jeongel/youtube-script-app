@@ -92,11 +92,11 @@ export const incomeDeductions: TaxSavingItem[] = [
     targetAudience: ["employee"],
     name: "신용카드 등 사용금액 소득공제",
     shortDescription: "총급여 25% 초과 사용분 15~40% 소득공제",
-    fullDescription: "근로소득자의 신용카드·체크카드·현금영수증 사용금액이 총급여의 25%를 초과하는 경우, 초과분에 대해 소득공제를 받을 수 있습니다. 공제율은 신용카드 15%, 체크카드/현금영수증 30%, 전통시장/대중교통 40%입니다.",
+    fullDescription: "근로소득자의 신용카드·체크카드·현금영수증 사용금액이 총급여의 25%를 초과하는 경우, 초과분에 대해 소득공제를 받을 수 있습니다. 공제율은 신용카드 15%, 체크카드/현금영수증 30%, 전통시장/대중교통 40%. 2026년부터 기본한도에 자녀당 50만원(총급여 7천만원 초과 시 25만원) 추가, 최대 100만원까지 상향.",
     tags: ["신용카드", "체크카드", "현금영수증", "소득공제", "연말정산"],
     impactLevel: "medium",
-    maxDeductionAmount: 3_000_000, // 총급여 7천만 이하 기준
-    applicableRate: "신용카드 15%, 체크카드 30%, 전통시장/대중교통 40%",
+    maxDeductionAmount: 3_000_000, // 총급여 7천만 이하 기본한도 (2026년부터 자녀당 추가)
+    applicableRate: "신용카드 15%, 체크카드 30%, 전통시장/대중교통 40% (한도: 250만~300만+자녀당50만)",
     requirements: [
       { id: "req_1", description: "총급여 25% 초과 사용", type: "income_limit", value: "총급여의 25% 초과분", critical: true },
     ],
@@ -108,7 +108,7 @@ export const incomeDeductions: TaxSavingItem[] = [
       { id: "traditional_market", label: "전통시장 사용액", type: "number", unit: "원", required: false },
       { id: "public_transport", label: "대중교통 사용액", type: "number", unit: "원", required: false },
     ],
-    calculationFormula: "총사용액 - (총급여×25%) = 초과분 → 결제수단별 공제율 적용 (한도 300만원)",
+    calculationFormula: "총사용액 - (총급여×25%) = 초과분 → 결제수단별 공제율 적용. 한도: 기본 250만(7천만↓ 300만) + 자녀당 50만(7천만↑ 25만), 최대 추가 100만",
     urgency: "year_end",
     difficulty: "easy",
     steps: ["연간 카드 사용 내역 확인", "체크카드/현금영수증 비율 조정", "전통시장·대중교통 적극 활용", "연말정산 간소화 자료 확인"],

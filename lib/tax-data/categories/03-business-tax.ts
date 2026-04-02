@@ -52,7 +52,7 @@ export const businessTax: TaxSavingItem[] = [
     shortDescription: "소득 일정 수준 이상 시 법인 전환으로 세율 차이 활용",
     fullDescription: "개인사업자의 종합소득세 최고세율은 45%인 반면 법인세는 최고 25%(2026). 연 소득이 약 8,800만원을 넘으면 법인 전환이 유리할 수 있습니다. 대표이사 급여 설계, 배당소득 분리과세와 결합하면 절세 극대화.",
     tags: ["법인전환", "개인사업자", "법인세", "소득세", "세율비교"],
-    impactLevel: "very_high", applicableRate: "소득세 45% → 법인세 10~25%",
+    impactLevel: "very_high", applicableRate: "소득세 최고 45% → 법인세 10/20/22/25%",
     requirements: [
       { id: "req_1", description: "연 과세소득 8,800만원 이상 권장", type: "income_limit", value: "8,800만원 이상", critical: false },
     ],

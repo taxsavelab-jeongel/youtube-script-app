@@ -47,11 +47,11 @@ export const INCOME_TAX_BRACKETS_2026 = [
   { min: 1_000_000_000, max: Infinity,     rate: 0.45 },
 ] as const
 
-/** 2026년 법인세율 구간 (1%p 인상 반영) */
+/** 2026년 법인세율 구간 (1%p 인상 반영: 9→10, 19→20, 21→22, 24→25) */
 export const CORPORATE_TAX_BRACKETS_2026 = [
   { min: 0,             max: 200_000_000,     rate: 0.10 },
-  { min: 200_000_000,   max: 20_000_000_000,  rate: 0.21 },
-  { min: 20_000_000_000, max: 300_000_000_000, rate: 0.23 },
+  { min: 200_000_000,   max: 20_000_000_000,  rate: 0.20 },
+  { min: 20_000_000_000, max: 300_000_000_000, rate: 0.22 },
   { min: 300_000_000_000, max: Infinity,       rate: 0.25 },
 ] as const
 

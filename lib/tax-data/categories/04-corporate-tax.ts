@@ -29,7 +29,7 @@ export const corporateTax: TaxSavingItem[] = [
       ], required: true },
       { id: "is_youth", label: "청년 대표 여부", type: "boolean", required: true },
     ],
-    calculationFormula: "감면세액 = 산출세액 × 감면율(50~100%). 감면 한도: 연 1억원 (근로자 감소 시 차감)",
+    calculationFormula: "감면세액 = 산출세액 × 감면율(50~100%). 업종별 최소고용인원 충족 시 추가감면 가능.",
     urgency: "year_round", difficulty: "medium",
     steps: ["업종 해당 여부 확인 (18개 업종)", "청년 해당 여부 확인 (만15~34세, 병역 최대 6년 추가)", "법인세 신고 시 세액감면 신청서 별도 제출"],
     contentHook: { title: "청년 사장님, 5년간 법인세 0원 가능합니다", hook: "수도권 밖에서 창업하면 5년간 세금 100% 면제!", targetKeyword: "창업중소기업 세액감면 2026", estimatedViews: "high" },
@@ -129,7 +129,7 @@ export const corporateTax: TaxSavingItem[] = [
     shortDescription: "법인세와 소득세의 교차점에서 급여 최적화",
     fullDescription: "대표이사 급여를 너무 낮추면 법인 이익이 커져 법인세 부담 증가, 너무 높이면 소득세 부담 증가. 2026년 법인세율 인상에 맞춰 최적 급여 구간을 재설계하여 법인세+소득세 합계를 최소화하는 전략.",
     tags: ["대표이사", "급여설계", "법인세", "소득세", "최적화"],
-    impactLevel: "high", applicableRate: "법인세 10~25% vs 소득세 6~45%",
+    impactLevel: "high", applicableRate: "법인세 10/20/22/25% vs 소득세 6~45%",
     requirements: [{ id: "req_1", description: "법인 대표이사", type: "employment", critical: true }],
     legalBasis: [
       { law: "법인세법", article: "제55조", effectiveDate: "2026-01-01" },

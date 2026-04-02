@@ -31,7 +31,7 @@ export const vatStrategies: TaxSavingItem[] = [
     savingType: "structure", targetAudience: ["sole_proprietor"],
     name: "간이과세자 ↔ 일반과세자 전환 전략",
     shortDescription: "매출 규모에 따라 유리한 과세 유형 선택",
-    fullDescription: "연 매출 1억 400만원 미만은 간이과세자로 부가세 부담 경감 (업종별 부가가치율 적용). 8,000만원 미만은 부가세 납부 면제. 반면 매입이 큰 업종은 일반과세자가 유리할 수 있음.",
+    fullDescription: "연 매출 1억 400만원 미만은 간이과세자로 부가세 부담 경감 (업종별 부가가치율 적용). 4,800만원 미만은 부가세 납부 면제. 반면 매입이 큰 업종은 일반과세자가 유리할 수 있음.",
     tags: ["간이과세자", "일반과세자", "부가세", "사업자전환"],
     impactLevel: "medium", applicableRate: "간이: 업종별 1.5~4% vs 일반: 10%",
     requirements: [{ id: "req_1", description: "연 매출 1억 400만원 미만 (간이과세 기준)", type: "income_limit", critical: false }],
