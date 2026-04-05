@@ -46,7 +46,7 @@ export default function Home() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Link
             href="/admin/review"
             className="block p-4 bg-gray-800 text-white rounded-2xl shadow-sm hover:bg-gray-900 transition-colors text-center"
@@ -62,6 +62,14 @@ export default function Home() {
             <span className="text-lg">✅</span>
             <span className="font-medium ml-2">법령 검증</span>
             <span className="text-xs text-blue-200 ml-2">법제처 API 연동</span>
+          </Link>
+          <Link
+            href="/admin/users"
+            className="block p-4 bg-purple-700 text-white rounded-2xl shadow-sm hover:bg-purple-800 transition-colors text-center"
+          >
+            <span className="text-lg">👥</span>
+            <span className="font-medium ml-2">사용자 관리</span>
+            <span className="text-xs text-purple-200 ml-2">가입 승인</span>
           </Link>
         </div>
 

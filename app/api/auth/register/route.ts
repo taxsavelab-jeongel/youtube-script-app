@@ -1,7 +1,7 @@
 // Design Ref: §7 Authentication — 회원가입 API Route (5개 필드)
 import { NextRequest, NextResponse } from 'next/server'
 import { signUp } from '@/lib/auth/session'
-import { createProfile } from '@/lib/db/profileRepo'
+import { updateUserProfile } from '@/lib/auth/session'
 
 export async function POST(request: NextRequest) {
   const { email, phone, company, job, password } = await request.json()
@@ -26,24 +26,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: result.error }, { status: 400 })
   }
 
-  // bkend.ai에 추가 프로필 정보 저장 (실패해도 가입은 완료 처리)
+  // 추가 프로필 정보 저장
   try {
-    await createProfile(
-      { userId: result.user.id, phone, company, job },
-      result.token
-    )
+    updateUserProfile(result.userId, { phone, company, job })
   } catch {
-    // 프로필 저장 실패는 로그만 남기고 진행
     console.error('프로필 저장 실패 (계정은 생성됨)')
   }
 
-  const response = NextResponse.json({ user: result.user }, { status: 201 })
-  response.cookies.set('auth_token', result.token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7,
-    path: '/',
-  })
-  return response
+  // 승인 대기 상태 — 쿠키 없이 pending 응답만 반환
+  return NextResponse.json({ pending: true }, { status: 201 })
 }

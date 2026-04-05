@@ -2,12 +2,9 @@
 // Design Ref: §7 Authentication — 회원가입 페이지 (5개 필드)
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 export default function RegisterPage() {
-  const router = useRouter()
-
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [company, setCompany] = useState('')
@@ -16,6 +13,7 @@ export default function RegisterPage() {
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isPending, setIsPending] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -44,13 +42,41 @@ export default function RegisterPage() {
         return
       }
 
-      router.push('/')
-      router.refresh()
+      // 승인 대기 화면으로 전환
+      setIsPending(true)
     } catch {
       setError('서버에 연결할 수 없습니다.')
     } finally {
       setIsLoading(false)
     }
+  }
+
+  // 승인 대기 화면
+  if (isPending) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
+        <div className="w-full max-w-sm text-center space-y-6">
+          <div className="text-6xl">⏳</div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">가입 신청 완료</h1>
+            <p className="text-sm text-gray-500 mt-2">관리자 승인 후 로그인이 가능합니다</p>
+          </div>
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 text-left space-y-2">
+            <p className="text-sm font-semibold text-amber-800">신청 이메일</p>
+            <p className="text-sm text-amber-700 font-mono">{email}</p>
+            <p className="text-xs text-amber-600 mt-2">
+              관리자가 계정을 승인하면 로그인하실 수 있습니다. 승인까지 다소 시간이 걸릴 수 있습니다.
+            </p>
+          </div>
+          <Link
+            href="/login"
+            className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition-colors text-sm text-center"
+          >
+            로그인 페이지로
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   return (

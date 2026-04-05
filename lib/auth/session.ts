@@ -10,13 +10,17 @@ export interface SessionUser {
   email: string
 }
 
-interface StoredUser {
+export type ApprovalStatus = 'pending' | 'approved' | 'rejected'
+
+export interface StoredUser {
   id: string
   email: string
   passwordHash: string // "salt:hash" 형식
   phone?: string
   company?: string
   job?: string
+  approvalStatus: ApprovalStatus
+  createdAt: string
 }
 
 const JWT_SECRET = process.env.JWT_SECRET ?? 'please-set-JWT_SECRET-in-env'
@@ -125,6 +129,12 @@ export async function signIn(
   if (!found || !checkPassword(password, found.passwordHash)) {
     return { error: '이메일 또는 비밀번호가 올바르지 않습니다.' }
   }
+  if (found.approvalStatus === 'pending') {
+    return { error: '관리자 승인 대기 중입니다. 승인 후 로그인할 수 있습니다.' }
+  }
+  if (found.approvalStatus === 'rejected') {
+    return { error: '가입이 거절되었습니다. 관리자에게 문의해주세요.' }
+  }
   const user: SessionUser = { id: found.id, email: found.email }
   return { token: createToken(user), user }
 }
@@ -134,7 +144,7 @@ export async function signUp(
   email: string,
   password: string,
   _name?: string
-): Promise<{ token: string; user: SessionUser } | { error: string }> {
+): Promise<{ pending: true; userId: string; email: string } | { error: string }> {
   // 관리자 이메일은 가입 불가 (환경변수로만 관리)
   const adminEmail = process.env.ADMIN_EMAIL
   if (adminEmail && email === adminEmail) {
@@ -150,12 +160,28 @@ export async function signUp(
     id: randomUUID(),
     email,
     passwordHash: hashPassword(password),
+    approvalStatus: 'pending',
+    createdAt: new Date().toISOString(),
   }
   users.push(newUser)
   saveUsers(users)
 
-  const user: SessionUser = { id: newUser.id, email: newUser.email }
-  return { token: createToken(user), user }
+  return { pending: true, userId: newUser.id, email: newUser.email }
+}
+
+/** 관리자: 전체 사용자 목록 조회 */
+export function getAllUsers(): Omit<StoredUser, 'passwordHash'>[] {
+  return loadUsers().map(({ passwordHash: _ph, ...rest }) => rest)
+}
+
+/** 관리자: 특정 사용자 승인 상태 변경 */
+export function updateApprovalStatus(userId: string, status: ApprovalStatus): boolean {
+  const users = loadUsers()
+  const idx = users.findIndex((u) => u.id === userId)
+  if (idx === -1) return false
+  users[idx].approvalStatus = status
+  saveUsers(users)
+  return true
 }
 
 /** profileRepo에서 유저 프로필 업데이트용 */
