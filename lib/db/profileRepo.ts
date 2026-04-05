@@ -6,8 +6,7 @@ const API_KEY = process.env.BKEND_API_KEY
 function headers(token?: string) {
   return {
     'Content-Type': 'application/json',
-    'X-Project-Id': PROJECT_ID ?? '',
-    'X-Api-Key': API_KEY ?? '',
+    'X-API-Key': API_KEY ?? '',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   }
 }

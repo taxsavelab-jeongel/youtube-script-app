@@ -30,7 +30,7 @@ function extractToken(request: NextRequest | Request): string | null {
 }
 
 /**
- * bkend.ai /auth/verify 엔드포인트로 서버사이드 토큰 검증.
+ * bkend.ai GET /auth/me 엔드포인트로 서버사이드 토큰 검증.
  * 서명 검증을 bkend.ai 서버에 위임하여 위조 토큰을 방지.
  */
 async function verifyToken(token: string): Promise<SessionUser | null> {
@@ -44,22 +44,21 @@ async function verifyToken(token: string): Promise<SessionUser | null> {
     return null
   }
 
-  // 2차: bkend.ai 서버에서 서명 검증
+  // 2차: bkend.ai 서버에서 서명 검증 (GET /auth/me)
   try {
     const baseUrl = process.env.BKEND_BASE_URL
-    const projectId = process.env.NEXT_PUBLIC_BKEND_PROJECT_ID
-    const res = await fetch(`${baseUrl}/auth/verify`, {
-      method: 'POST',
+    const apiKey = process.env.BKEND_API_KEY
+    const res = await fetch(`${baseUrl}/auth/me`, {
+      method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
-        'X-Project-Id': projectId ?? '',
+        'X-API-Key': apiKey ?? '',
         Authorization: `Bearer ${token}`,
       },
     })
     if (!res.ok) return null
     const data = await res.json()
-    const id = data.user?.id || data.sub
-    const email = data.user?.email || data.email
+    const id = data.id
+    const email = data.email
     if (!id || !email) return null
     return { id, email }
   } catch {
@@ -68,32 +67,44 @@ async function verifyToken(token: string): Promise<SessionUser | null> {
   }
 }
 
+/** JWT payload에서 사용자 정보 추출 (signIn/signUp 후 즉시 사용) */
+function getUserFromToken(token: string, fallbackEmail: string): SessionUser {
+  try {
+    const parts = token.split('.')
+    const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf-8'))
+    return { id: payload.sub ?? '', email: payload.email ?? fallbackEmail }
+  } catch {
+    return { id: '', email: fallbackEmail }
+  }
+}
+
 /**
- * bkend.ai 로그인 API 호출
+ * bkend.ai 로그인 API 호출 (POST /auth/email/signin)
  */
 export async function signIn(
   email: string,
   password: string
 ): Promise<{ token: string; user: SessionUser } | { error: string }> {
   const baseUrl = process.env.BKEND_BASE_URL
-  const projectId = process.env.NEXT_PUBLIC_BKEND_PROJECT_ID
+  const apiKey = process.env.BKEND_API_KEY
 
   try {
-    const res = await fetch(`${baseUrl}/auth/login`, {
+    const res = await fetch(`${baseUrl}/auth/email/signin`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Project-Id': projectId ?? '',
+        'X-API-Key': apiKey ?? '',
       },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ method: 'password', email, password }),
     })
 
     const data = await res.json()
-    if (!res.ok) return { error: data.message || '로그인에 실패했습니다.' }
+    if (!res.ok) return { error: data.error?.message || data.message || '로그인에 실패했습니다.' }
 
+    const accessToken: string = data.accessToken
     return {
-      token: data.token,
-      user: { id: data.user.id, email: data.user.email },
+      token: accessToken,
+      user: getUserFromToken(accessToken, email),
     }
   } catch {
     return { error: '서버에 연결할 수 없습니다.' }
@@ -101,31 +112,34 @@ export async function signIn(
 }
 
 /**
- * bkend.ai 회원가입 API 호출
+ * bkend.ai 회원가입 API 호출 (POST /auth/email/signup)
  */
 export async function signUp(
   email: string,
-  password: string
+  password: string,
+  name?: string
 ): Promise<{ token: string; user: SessionUser } | { error: string }> {
   const baseUrl = process.env.BKEND_BASE_URL
-  const projectId = process.env.NEXT_PUBLIC_BKEND_PROJECT_ID
+  const apiKey = process.env.BKEND_API_KEY
+  const displayName = name ?? email.split('@')[0]
 
   try {
-    const res = await fetch(`${baseUrl}/auth/register`, {
+    const res = await fetch(`${baseUrl}/auth/email/signup`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Project-Id': projectId ?? '',
+        'X-API-Key': apiKey ?? '',
       },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ method: 'password', email, password, name: displayName }),
     })
 
     const data = await res.json()
-    if (!res.ok) return { error: data.message || '회원가입에 실패했습니다.' }
+    if (!res.ok) return { error: data.error?.message || data.message || '회원가입에 실패했습니다.' }
 
+    const accessToken: string = data.accessToken
     return {
-      token: data.token,
-      user: { id: data.user.id, email: data.user.email },
+      token: accessToken,
+      user: getUserFromToken(accessToken, email),
     }
   } catch {
     return { error: '서버에 연결할 수 없습니다.' }
