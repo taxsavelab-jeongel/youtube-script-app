@@ -1,4 +1,8 @@
-// Design Ref: §7.2 Session Utility — bkend.ai JWT 검증
+// 자체 인증 시스템 — bkend.ai 의존 없음
+// JWT: Node.js 내장 crypto (HMAC-SHA256)
+// 유저 저장: /tmp/users.json (Vercel 임시) + 환경변수 ADMIN_EMAIL/ADMIN_PASSWORD (영구)
+import { createHmac, randomUUID, scryptSync, timingSafeEqual } from 'crypto'
+import { readFileSync, writeFileSync, existsSync } from 'fs'
 import type { NextRequest } from 'next/server'
 
 export interface SessionUser {
@@ -6,142 +10,163 @@ export interface SessionUser {
   email: string
 }
 
-/**
- * Request 쿠키에서 JWT를 추출하고 사용자 정보를 반환합니다.
- * bkend.ai JWT payload: { sub: userId, email, iat, exp }
- */
-export async function getSessionUser(
-  request: NextRequest | Request
-): Promise<SessionUser | null> {
-  const token = extractToken(request)
-  if (!token) return null
-  return await verifyToken(token)
+interface StoredUser {
+  id: string
+  email: string
+  passwordHash: string // "salt:hash" 형식
+  phone?: string
+  company?: string
+  job?: string
 }
 
-function extractToken(request: NextRequest | Request): string | null {
-  // 쿠키에서 추출 (미들웨어 / API Route 공용)
-  if ('cookies' in request && typeof (request as NextRequest).cookies?.get === 'function') {
-    return (request as NextRequest).cookies.get('auth_token')?.value ?? null
+const JWT_SECRET = process.env.JWT_SECRET ?? 'please-set-JWT_SECRET-in-env'
+const USERS_FILE = '/tmp/youtube-script-users.json'
+
+// ── 비밀번호 유틸 ──────────────────────────────────────────
+function hashPassword(password: string): string {
+  const salt = randomUUID()
+  const hash = scryptSync(password, salt, 64).toString('hex')
+  return `${salt}:${hash}`
+}
+
+function checkPassword(password: string, stored: string): boolean {
+  try {
+    const [salt, hash] = stored.split(':')
+    const buf = scryptSync(password, salt, 64)
+    return timingSafeEqual(buf, Buffer.from(hash, 'hex'))
+  } catch {
+    return false
   }
-  // 헤더에서 추출 (Bearer 토큰)
-  const auth = request.headers.get('Authorization')
-  if (auth?.startsWith('Bearer ')) return auth.slice(7)
-  return null
 }
 
-/**
- * bkend.ai GET /auth/me 엔드포인트로 서버사이드 토큰 검증.
- * 서명 검증을 bkend.ai 서버에 위임하여 위조 토큰을 방지.
- */
-async function verifyToken(token: string): Promise<SessionUser | null> {
-  // 1차: 만료 시간 빠른 확인 (불필요한 네트워크 절약)
+// ── 유저 파일 I/O ──────────────────────────────────────────
+function loadUsers(): StoredUser[] {
+  try {
+    if (existsSync(USERS_FILE)) {
+      return JSON.parse(readFileSync(USERS_FILE, 'utf-8')) as StoredUser[]
+    }
+  } catch {
+    // 파일 없음 또는 파싱 실패 → 빈 배열
+  }
+  return []
+}
+
+function saveUsers(users: StoredUser[]): void {
+  writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), 'utf-8')
+}
+
+// ── JWT 유틸 ──────────────────────────────────────────────
+function createToken(user: SessionUser): string {
+  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url')
+  const now = Math.floor(Date.now() / 1000)
+  const payload = Buffer.from(
+    JSON.stringify({ sub: user.id, email: user.email, iat: now, exp: now + 7 * 24 * 3600 })
+  ).toString('base64url')
+  const sig = createHmac('sha256', JWT_SECRET)
+    .update(`${header}.${payload}`)
+    .digest('base64url')
+  return `${header}.${payload}.${sig}`
+}
+
+function verifyTokenSync(token: string): SessionUser | null {
   try {
     const parts = token.split('.')
     if (parts.length !== 3) return null
-    const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf-8'))
-    if (payload.exp && Date.now() / 1000 > payload.exp) return null
+    const [header, payload, sig] = parts
+    const expected = createHmac('sha256', JWT_SECRET)
+      .update(`${header}.${payload}`)
+      .digest('base64url')
+    // 타이밍 공격 방어
+    if (!timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null
+    const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf-8')) as {
+      sub: string; email: string; exp: number
+    }
+    if (data.exp < Date.now() / 1000) return null
+    return { id: data.sub, email: data.email }
   } catch {
-    return null
-  }
-
-  // 2차: bkend.ai 서버에서 서명 검증 (GET /auth/me)
-  try {
-    const baseUrl = process.env.BKEND_BASE_URL
-    const apiKey = process.env.BKEND_API_KEY
-    const res = await fetch(`${baseUrl}/auth/me`, {
-      method: 'GET',
-      headers: {
-        'X-API-Key': apiKey ?? '',
-        Authorization: `Bearer ${token}`,
-      },
-    })
-    if (!res.ok) return null
-    const data = await res.json()
-    const id = data.id
-    const email = data.email
-    if (!id || !email) return null
-    return { id, email }
-  } catch {
-    // bkend.ai 연결 불가 시 서비스 불가 처리 (보안 우선)
     return null
   }
 }
 
-/** JWT payload에서 사용자 정보 추출 (signIn/signUp 후 즉시 사용) */
-function getUserFromToken(token: string, fallbackEmail: string): SessionUser {
-  try {
-    const parts = token.split('.')
-    const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf-8'))
-    return { id: payload.sub ?? '', email: payload.email ?? fallbackEmail }
-  } catch {
-    return { id: '', email: fallbackEmail }
+// ── Public API ─────────────────────────────────────────────
+
+/** Request 쿠키 / Authorization 헤더에서 세션 유저 추출 */
+export async function getSessionUser(
+  request: NextRequest | Request
+): Promise<SessionUser | null> {
+  let token: string | null = null
+  if ('cookies' in request && typeof (request as NextRequest).cookies?.get === 'function') {
+    token = (request as NextRequest).cookies.get('auth_token')?.value ?? null
   }
+  if (!token) {
+    const auth = request.headers.get('Authorization')
+    if (auth?.startsWith('Bearer ')) token = auth.slice(7)
+  }
+  if (!token) return null
+  return verifyTokenSync(token)
 }
 
-/**
- * bkend.ai 로그인 API 호출 (POST /auth/email/signin)
- */
+/** 로그인 */
 export async function signIn(
   email: string,
   password: string
 ): Promise<{ token: string; user: SessionUser } | { error: string }> {
-  const baseUrl = process.env.BKEND_BASE_URL
-  const apiKey = process.env.BKEND_API_KEY
-
-  try {
-    const res = await fetch(`${baseUrl}/auth/email/signin`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': apiKey ?? '',
-      },
-      body: JSON.stringify({ method: 'password', email, password }),
-    })
-
-    const data = await res.json()
-    if (!res.ok) return { error: data.error?.message || data.message || '로그인에 실패했습니다.' }
-
-    const accessToken: string = data.accessToken
-    return {
-      token: accessToken,
-      user: getUserFromToken(accessToken, email),
-    }
-  } catch {
-    return { error: '서버에 연결할 수 없습니다.' }
+  // 1) 환경변수 관리자 계정 (Vercel 재배포 후에도 항상 유효)
+  const adminEmail = process.env.ADMIN_EMAIL
+  const adminPassword = process.env.ADMIN_PASSWORD
+  if (adminEmail && adminPassword && email === adminEmail && password === adminPassword) {
+    const user: SessionUser = { id: 'admin', email: adminEmail }
+    return { token: createToken(user), user }
   }
+
+  // 2) 파일 기반 일반 유저
+  const users = loadUsers()
+  const found = users.find((u) => u.email === email)
+  if (!found || !checkPassword(password, found.passwordHash)) {
+    return { error: '이메일 또는 비밀번호가 올바르지 않습니다.' }
+  }
+  const user: SessionUser = { id: found.id, email: found.email }
+  return { token: createToken(user), user }
 }
 
-/**
- * bkend.ai 회원가입 API 호출 (POST /auth/email/signup)
- */
+/** 회원가입 */
 export async function signUp(
   email: string,
   password: string,
-  name?: string
+  _name?: string
 ): Promise<{ token: string; user: SessionUser } | { error: string }> {
-  const baseUrl = process.env.BKEND_BASE_URL
-  const apiKey = process.env.BKEND_API_KEY
-  const displayName = name ?? email.split('@')[0]
+  // 관리자 이메일은 가입 불가 (환경변수로만 관리)
+  const adminEmail = process.env.ADMIN_EMAIL
+  if (adminEmail && email === adminEmail) {
+    return { error: '이미 사용 중인 이메일입니다.' }
+  }
 
-  try {
-    const res = await fetch(`${baseUrl}/auth/email/signup`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': apiKey ?? '',
-      },
-      body: JSON.stringify({ method: 'password', email, password, name: displayName }),
-    })
+  const users = loadUsers()
+  if (users.find((u) => u.email === email)) {
+    return { error: '이미 사용 중인 이메일입니다.' }
+  }
 
-    const data = await res.json()
-    if (!res.ok) return { error: data.error?.message || data.message || '회원가입에 실패했습니다.' }
+  const newUser: StoredUser = {
+    id: randomUUID(),
+    email,
+    passwordHash: hashPassword(password),
+  }
+  users.push(newUser)
+  saveUsers(users)
 
-    const accessToken: string = data.accessToken
-    return {
-      token: accessToken,
-      user: getUserFromToken(accessToken, email),
-    }
-  } catch {
-    return { error: '서버에 연결할 수 없습니다.' }
+  const user: SessionUser = { id: newUser.id, email: newUser.email }
+  return { token: createToken(user), user }
+}
+
+/** profileRepo에서 유저 프로필 업데이트용 */
+export function updateUserProfile(
+  userId: string,
+  profile: { phone?: string; company?: string; job?: string }
+): void {
+  const users = loadUsers()
+  const idx = users.findIndex((u) => u.id === userId)
+  if (idx !== -1) {
+    users[idx] = { ...users[idx], ...profile }
+    saveUsers(users)
   }
 }

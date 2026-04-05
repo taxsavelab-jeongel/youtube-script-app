@@ -1,33 +1,37 @@
-// Design Ref: §8 Data Model — bkend.ai CRUD 래퍼
-// Plan SC: SC-03(저장), SC-04(목록 조회)
+// 파일 기반 스크립트 저장소 — bkend.ai 의존 없음
+// Vercel: /tmp/youtube-script-scripts.json (인스턴스 내 유지)
+import { randomUUID } from 'crypto'
+import { readFileSync, writeFileSync, existsSync } from 'fs'
 import type { Script, SaveScriptData } from '@/types/script'
 
-const BASE = process.env.BKEND_BASE_URL
-const PROJECT_ID = process.env.NEXT_PUBLIC_BKEND_PROJECT_ID
-const API_KEY = process.env.BKEND_API_KEY
+const SCRIPTS_FILE = '/tmp/youtube-script-scripts.json'
 
-function headers(token?: string) {
-  return {
-    'Content-Type': 'application/json',
-    'X-API-Key': API_KEY ?? '',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+function loadAll(): Script[] {
+  try {
+    if (existsSync(SCRIPTS_FILE)) {
+      return JSON.parse(readFileSync(SCRIPTS_FILE, 'utf-8')) as Script[]
+    }
+  } catch {
+    // 파일 없음 또는 파싱 실패
   }
+  return []
+}
+
+function saveAll(scripts: Script[]): void {
+  writeFileSync(SCRIPTS_FILE, JSON.stringify(scripts, null, 2), 'utf-8')
 }
 
 /** 사용자의 스크립트 목록 조회 */
 export async function listScripts(
   token: string
 ): Promise<{ scripts: Script[]; total: number }> {
-  const res = await fetch(
-    `${BASE}/tables/scripts/rows?orderBy=created_at&order=desc`,
-    { headers: headers(token), cache: 'no-store' }
+  void token // 파일 기반에서는 토큰 불필요 (API Route에서 세션 검증 완료)
+  const all = loadAll()
+  // 최신순 정렬
+  const sorted = [...all].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   )
-  if (!res.ok) throw new Error('스크립트 목록을 불러오지 못했습니다.')
-  const data = await res.json()
-  return {
-    scripts: (data.rows ?? []).map(mapRow),
-    total: data.total ?? 0,
-  }
+  return { scripts: sorted, total: sorted.length }
 }
 
 /** 스크립트 단건 조회 */
@@ -35,14 +39,9 @@ export async function getScript(
   id: string,
   token: string
 ): Promise<Script | null> {
-  const res = await fetch(`${BASE}/tables/scripts/rows/${id}`, {
-    headers: headers(token),
-    cache: 'no-store',
-  })
-  if (res.status === 404) return null
-  if (!res.ok) throw new Error('스크립트를 불러오지 못했습니다.')
-  const data = await res.json()
-  return mapRow(data)
+  void token
+  const all = loadAll()
+  return all.find((s) => s.id === id) ?? null
 }
 
 /** 스크립트 저장 */
@@ -51,25 +50,27 @@ export async function createScript(
   userId: string,
   token: string
 ): Promise<{ id: string }> {
-  const res = await fetch(`${BASE}/tables/scripts/rows`, {
-    method: 'POST',
-    headers: headers(token),
-    body: JSON.stringify({
-      user_id: userId,
-      title: data.title,
-      topic: data.topic,
-      channel_style: data.channelStyle,
-      video_length: data.videoLength,
-      target_audience: data.targetAudience,
-      titles_candidates: data.titlesCandidates,
-      thumbnail_ideas: data.thumbnailIdeas,
-      script_content: data.scriptContent,
-      hashtags: data.hashtags,
-    }),
-  })
-  if (!res.ok) throw new Error('스크립트 저장에 실패했습니다.')
-  const result = await res.json()
-  return { id: result.id }
+  void token
+  const now = new Date().toISOString()
+  const script: Script = {
+    id: randomUUID(),
+    userId,
+    title: data.title,
+    topic: data.topic,
+    channelStyle: data.channelStyle,
+    videoLength: data.videoLength,
+    targetAudience: data.targetAudience,
+    titlesCandidates: data.titlesCandidates,
+    thumbnailIdeas: data.thumbnailIdeas,
+    scriptContent: data.scriptContent,
+    hashtags: data.hashtags,
+    createdAt: now,
+    updatedAt: now,
+  }
+  const all = loadAll()
+  all.push(script)
+  saveAll(all)
+  return { id: script.id }
 }
 
 /** 스크립트 수정 */
@@ -78,17 +79,12 @@ export async function updateScript(
   data: Partial<Script>,
   token: string
 ): Promise<void> {
-  const body: Record<string, unknown> = {}
-  if (data.title !== undefined) body.title = data.title
-  if (data.scriptContent !== undefined) body.script_content = data.scriptContent
-  if (data.hashtags !== undefined) body.hashtags = data.hashtags
-
-  const res = await fetch(`${BASE}/tables/scripts/rows/${id}`, {
-    method: 'PATCH',
-    headers: headers(token),
-    body: JSON.stringify(body),
-  })
-  if (!res.ok) throw new Error('스크립트 수정에 실패했습니다.')
+  void token
+  const all = loadAll()
+  const idx = all.findIndex((s) => s.id === id)
+  if (idx === -1) throw new Error('스크립트를 찾을 수 없습니다.')
+  all[idx] = { ...all[idx], ...data, updatedAt: new Date().toISOString() }
+  saveAll(all)
 }
 
 /** 스크립트 삭제 */
@@ -96,28 +92,9 @@ export async function deleteScript(
   id: string,
   token: string
 ): Promise<void> {
-  const res = await fetch(`${BASE}/tables/scripts/rows/${id}`, {
-    method: 'DELETE',
-    headers: headers(token),
-  })
-  if (!res.ok) throw new Error('스크립트 삭제에 실패했습니다.')
-}
-
-// bkend.ai snake_case → camelCase 변환
-function mapRow(row: Record<string, unknown>): Script {
-  return {
-    id: row.id as string,
-    userId: row.user_id as string,
-    title: row.title as string,
-    topic: row.topic as string,
-    channelStyle: row.channel_style as Script['channelStyle'],
-    videoLength: row.video_length as Script['videoLength'],
-    targetAudience: row.target_audience as Script['targetAudience'],
-    titlesCandidates: (row.titles_candidates as string[]) ?? [],
-    thumbnailIdeas: (row.thumbnail_ideas as string[]) ?? [],
-    scriptContent: row.script_content as string,
-    hashtags: (row.hashtags as string[]) ?? [],
-    createdAt: row.created_at as string,
-    updatedAt: row.updated_at as string,
-  }
+  void token
+  const all = loadAll()
+  const filtered = all.filter((s) => s.id !== id)
+  if (filtered.length === all.length) throw new Error('스크립트를 찾을 수 없습니다.')
+  saveAll(filtered)
 }
