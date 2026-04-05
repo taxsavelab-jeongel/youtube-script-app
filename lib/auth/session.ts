@@ -184,6 +184,18 @@ export function updateApprovalStatus(userId: string, status: ApprovalStatus): bo
   return true
 }
 
+/** 관리자: 사용자 비밀번호 임시 초기화 — 임시 비밀번호 반환 */
+export function resetUserPassword(userId: string): string | null {
+  const users = loadUsers()
+  const idx = users.findIndex((u) => u.id === userId)
+  if (idx === -1) return null
+  // 8자리 임시 비밀번호 생성 (숫자+영문)
+  const tempPassword = randomUUID().replace(/-/g, '').slice(0, 8)
+  users[idx].passwordHash = hashPassword(tempPassword)
+  saveUsers(users)
+  return tempPassword
+}
+
 /** profileRepo에서 유저 프로필 업데이트용 */
 export function updateUserProfile(
   userId: string,

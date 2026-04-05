@@ -31,6 +31,8 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [updating, setUpdating] = useState<string | null>(null)
+  const [resetting, setResetting] = useState<string | null>(null)
+  const [tempPasswords, setTempPasswords] = useState<Record<string, string>>({})
   const [filter, setFilter] = useState<ApprovalStatus | 'all'>('all')
 
   const fetchUsers = async () => {
@@ -74,6 +76,25 @@ export default function AdminUsersPage() {
       alert('서버에 연결할 수 없습니다.')
     } finally {
       setUpdating(null)
+    }
+  }
+
+  const handleResetPassword = async (userId: string) => {
+    if (!confirm('이 사용자의 비밀번호를 초기화하시겠습니까?')) return
+    setResetting(userId)
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/reset-password`, { method: 'POST' })
+      if (!res.ok) {
+        const data = await res.json()
+        alert(data.error || '초기화에 실패했습니다.')
+        return
+      }
+      const data = await res.json()
+      setTempPasswords((prev) => ({ ...prev, [userId]: data.tempPassword }))
+    } catch {
+      alert('서버에 연결할 수 없습니다.')
+    } finally {
+      setResetting(null)
     }
   }
 
@@ -162,7 +183,7 @@ export default function AdminUsersPage() {
                 </div>
 
                 {/* 액션 버튼 */}
-                <div className="flex gap-2 shrink-0">
+                <div className="flex flex-wrap gap-2 shrink-0">
                   {user.approvalStatus !== 'approved' && (
                     <button
                       onClick={() => handleStatusChange(user.id, 'approved')}
@@ -190,8 +211,29 @@ export default function AdminUsersPage() {
                       대기로
                     </button>
                   )}
+                  <button
+                    onClick={() => handleResetPassword(user.id)}
+                    disabled={resetting === user.id}
+                    className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white text-sm font-medium rounded-lg transition-colors"
+                  >
+                    {resetting === user.id ? '초기화 중...' : '🔑 비밀번호 초기화'}
+                  </button>
                 </div>
               </div>
+              {tempPasswords[user.id] && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg px-4 py-3 flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs text-orange-600 font-medium mb-0.5">임시 비밀번호 (사용자에게 전달하세요)</p>
+                    <code className="text-sm font-mono font-bold text-orange-800">{tempPasswords[user.id]}</code>
+                  </div>
+                  <button
+                    onClick={() => setTempPasswords((prev) => { const n = { ...prev }; delete n[user.id]; return n })}
+                    className="text-orange-400 hover:text-orange-600 text-xs"
+                  >
+                    닫기
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>

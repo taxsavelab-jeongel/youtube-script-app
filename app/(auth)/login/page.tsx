@@ -90,11 +90,16 @@ function LoginForm() {
         </button>
       </form>
 
-      <div className="mt-4 text-center">
+      <div className="mt-4 space-y-2 text-center">
         <p className="text-sm text-gray-500">
           계정이 없으신가요?{' '}
           <Link href="/register" className="text-blue-600 hover:underline font-medium">
             회원가입
+          </Link>
+        </p>
+        <p className="text-sm text-gray-400">
+          <Link href="/forgot-password" className="text-gray-500 hover:text-blue-600 hover:underline">
+            비밀번호를 잊으셨나요?
           </Link>
         </p>
       </div>
