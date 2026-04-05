@@ -4,6 +4,19 @@ import type { NextRequest } from 'next/server'
 
 const AUTH_ROUTES = ['/login', '/register']
 const PUBLIC_API_PREFIX = '/api/auth'
+const ADMIN_PAGE_ROUTES = ['/admin/users']
+
+/** JWT payload에서 이메일 추출 (Edge Runtime용, 서명 미검증 — API에서 검증) */
+function getEmailFromToken(token: string): string | null {
+  try {
+    const parts = token.split('.')
+    if (parts.length !== 3) return null
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+    return JSON.parse(atob(base64)).email ?? null
+  } catch {
+    return null
+  }
+}
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -11,6 +24,7 @@ export function middleware(request: NextRequest) {
 
   const isAuthRoute = AUTH_ROUTES.some((r) => pathname.startsWith(r))
   const isPublicApi = pathname.startsWith(PUBLIC_API_PREFIX)
+  const isAdminPageRoute = ADMIN_PAGE_ROUTES.some((r) => pathname.startsWith(r))
 
   // 인증 API는 항상 통과
   if (isPublicApi) {
@@ -32,6 +46,15 @@ export function middleware(request: NextRequest) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('next', pathname)
     return NextResponse.redirect(loginUrl)
+  }
+
+  // 관리자 전용 페이지: 관리자 이메일과 일치하지 않으면 홈으로
+  if (isAdminPageRoute) {
+    const adminEmail = process.env.ADMIN_EMAIL
+    const userEmail = getEmailFromToken(token)
+    if (!adminEmail || userEmail !== adminEmail) {
+      return NextResponse.redirect(new URL('/', request.url))
+    }
   }
 
   return NextResponse.next()

@@ -1,6 +1,24 @@
 import Link from 'next/link'
+import { cookies } from 'next/headers'
 
-export default function Home() {
+async function getIsAdmin(): Promise<boolean> {
+  try {
+    const cookieStore = await cookies()
+    const token = cookieStore.get('auth_token')?.value
+    if (!token) return false
+    const parts = token.split('.')
+    if (parts.length !== 3) return false
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+    const payload = JSON.parse(Buffer.from(base64, 'base64').toString('utf-8'))
+    const adminEmail = process.env.ADMIN_EMAIL
+    return !!(adminEmail && payload.email === adminEmail)
+  } catch {
+    return false
+  }
+}
+
+export default async function Home() {
+  const isAdmin = await getIsAdmin()
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="max-w-2xl mx-auto px-4 text-center space-y-8">
@@ -63,14 +81,16 @@ export default function Home() {
             <span className="font-medium ml-2">법령 검증</span>
             <span className="text-xs text-blue-200 ml-2">법제처 API 연동</span>
           </Link>
-          <Link
-            href="/admin/users"
-            className="block p-4 bg-purple-700 text-white rounded-2xl shadow-sm hover:bg-purple-800 transition-colors text-center"
-          >
-            <span className="text-lg">👥</span>
-            <span className="font-medium ml-2">사용자 관리</span>
-            <span className="text-xs text-purple-200 ml-2">가입 승인</span>
-          </Link>
+          {isAdmin && (
+            <Link
+              href="/admin/users"
+              className="block p-4 bg-purple-700 text-white rounded-2xl shadow-sm hover:bg-purple-800 transition-colors text-center"
+            >
+              <span className="text-lg">👥</span>
+              <span className="font-medium ml-2">사용자 관리</span>
+              <span className="text-xs text-purple-200 ml-2">가입 승인</span>
+            </Link>
+          )}
         </div>
 
         <p className="text-xs text-gray-400">
