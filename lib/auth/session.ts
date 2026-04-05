@@ -196,6 +196,26 @@ export function resetUserPassword(userId: string): string | null {
   return tempPassword
 }
 
+/** 셀프 서비스: 이메일 + 핸드폰 일치 시 임시 비밀번호 반환 */
+export function resetPasswordByEmailAndPhone(
+  email: string,
+  phone: string
+): string | null {
+  const users = loadUsers()
+  const normalizedPhone = phone.replace(/\D/g, '')
+  const idx = users.findIndex(
+    (u) =>
+      u.email === email &&
+      u.phone !== undefined &&
+      u.phone.replace(/\D/g, '') === normalizedPhone
+  )
+  if (idx === -1) return null
+  const tempPassword = randomUUID().replace(/-/g, '').slice(0, 8)
+  users[idx].passwordHash = hashPassword(tempPassword)
+  saveUsers(users)
+  return tempPassword
+}
+
 /** profileRepo에서 유저 프로필 업데이트용 */
 export function updateUserProfile(
   userId: string,
