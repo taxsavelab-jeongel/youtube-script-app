@@ -31,7 +31,7 @@ export const corporateTaxExtra: TaxSavingItem[] = [
     savingType: "split", targetAudience: ["business_owner", "corporation"],
     name: "배당 시점·금액 최적화 (2026 분리과세 활용)",
     shortDescription: "2026년 배당소득 분리과세 신설로 배당 전략 재설계",
-    fullDescription: "2026년부터 배당소득 분리과세(2천만↓ 15.4%, 2천만~3억 22%, 3억~50억 27.5%) 도입. 법인세를 약간 더 내더라도 이익잉여금을 배당으로 가져올 때 세금이 대폭 줄어듦. 종합과세(최대 49.5%) 대비 최대 22%p 절세.",
+    fullDescription: "2026년부터 배당소득 분리과세(2천만↓ 14%/15.4%, 2천만~3억 20%/22%, 3억~50억 25%/27.5%, 50억↑ 30%/33%) 2026~2028 한시 도입. 법인세를 약간 더 내더라도 이익잉여금을 배당으로 가져올 때 세금이 대폭 줄어듦. 종합과세(최대 49.5%) 대비 최대 19%p 절세.",
     tags: ["배당", "분리과세", "이익잉여금", "법인", "주주"],
     impactLevel: "very_high", applicableRate: "종합과세 49.5% → 분리과세 22~33%",
     requirements: [{ id: "r1", description: "법인 주주/대표이사", type: "employment", critical: true }],
@@ -104,6 +104,97 @@ export const corporateTaxExtra: TaxSavingItem[] = [
     ],
     calculationFormula: "정액법: 매년 동일 금액. 정률법: 초기 높고 점점 감소.", urgency: "year_round", difficulty: "medium",
     steps: ["자산별 내용연수 확인", "정률법 vs 정액법 시뮬레이션", "신고 시 감가상각 방법 선택"],
+  },
+  {
+    id: "corp_parental_leave_return_credit",
+    version: "2026.1", lastUpdated: "2026-01-01",
+    category: "corporate", subcategory: "고용 세액공제",
+    savingType: "credit", targetAudience: ["corporation", "sole_proprietor"],
+    name: "육아휴직 복귀자 세액공제 (2026.12.31까지 연장)",
+    shortDescription: "육아휴직 후 복귀한 직원 1인당 중소기업 1,300만원 / 중견기업 900만원 세액공제",
+    fullDescription: `육아휴직을 사용한 직원이 복직한 경우 사업주에게 세액을 추가 공제하는 제도. 2026년 12월 31일까지 적용 기한이 연장되었습니다.
+
+■ 공제 금액
+  - 중소기업: 복귀자 1인당 1,300만원
+  - 중견기업: 복귀자 1인당 900만원
+
+■ 적용 요건
+  - 근로자가 육아휴직을 사용한 후 같은 사업장에 복직
+  - 복직 후 1년 이상 계속 고용 유지
+  - 중소기업 또는 중견기업 해당
+
+■ 적용 기한
+  2026.12.31까지 (조세특례제한법 일몰 기한 연장)`,
+    tags: ["육아휴직", "복직", "세액공제", "고용", "중소기업", "출산장려"],
+    impactLevel: "high", maxSavingAmount: 13_000_000, applicableRate: "중소기업 1,300만원 / 중견기업 900만원 (1인당)",
+    requirements: [
+      { id: "r1", description: "중소기업 또는 중견기업", type: "business_type", critical: true },
+      { id: "r2", description: "육아휴직 후 동일 사업장 복직", type: "employment", critical: true },
+      { id: "r3", description: "복직 후 1년 이상 고용 유지", type: "period", critical: true },
+    ],
+    legalBasis: [{ law: "조세특례제한법", article: "제29조의3", effectiveDate: "2026-01-01", expiryDate: "2026-12-31" }],
+    calculationParams: [
+      { id: "returnees", label: "육아휴직 복귀자 수", type: "number", unit: "명", required: true },
+      { id: "company_size", label: "기업 규모", type: "select", options: [
+        { label: "중소기업 (1,300만원)", value: "sme" },
+        { label: "중견기업 (900만원)", value: "mid" },
+      ], required: true },
+    ],
+    calculationFormula: "공제액 = 복귀자 수 × 1,300만원(중소) 또는 900만원(중견)",
+    urgency: "year_round", difficulty: "easy",
+    steps: [
+      "① 육아휴직 후 복직 직원 현황 파악",
+      "② 복직 후 1년 고용 유지 여부 확인",
+      "③ 법인세/소득세 신고 시 세액공제 신청서 제출",
+    ],
+    contentHook: { title: "육아휴직 직원 복귀시키면 세금 1,300만원 돌려받는다!", hook: "출산율 높이면 세금도 준다 — 중소기업 사장님 체크!", targetKeyword: "육아휴직 복귀자 세액공제 2026", estimatedViews: "medium" },
+  },
+  {
+    id: "corp_sme_employment_income_reduction",
+    version: "2026.1", lastUpdated: "2026-01-01",
+    category: "corporate", subcategory: "고용 세액공제",
+    savingType: "reduction", targetAudience: ["corporation", "sole_proprietor", "youth"],
+    name: "중소기업 취업자 소득세 감면 (2026.12.31까지 연장)",
+    shortDescription: "중소기업 취업 청년·노인·장애인·경력단절여성 소득세 70~90% 감면",
+    fullDescription: `중소기업에 취업한 청년·고령자·장애인·경력단절여성에 대해 일정 기간 소득세를 감면하는 제도. 2026년 12월 31일까지 적용 기한이 연장되었습니다.
+
+■ 대상자 및 감면율
+  - 청년 (만15~34세): 소득세 90% 감면, 5년간
+  - 60세 이상 고령자 / 장애인 / 경력단절여성: 소득세 70% 감면, 3년간
+
+■ 감면 한도
+  - 연 200만원 (감면세액 기준)
+
+■ 중소기업 요건
+  - 조세특례제한법상 중소기업 해당 업종
+  - 소비성 서비스업 등 일부 업종 제외
+
+■ 적용 기한
+  2026.12.31까지 (기한 연장)`,
+    tags: ["중소기업", "취업자감면", "청년취업", "소득세감면", "경력단절"],
+    impactLevel: "high", maxSavingAmount: 2_000_000, applicableRate: "청년 90% / 고령자·장애인·경력단절 70% (연 200만원 한도)",
+    requirements: [
+      { id: "r1", description: "중소기업 취업 (감면 업종)", type: "business_type", critical: true },
+      { id: "r2", description: "청년(만15~34세) 또는 60세↑ / 장애인 / 경력단절여성", type: "other", critical: true },
+    ],
+    legalBasis: [{ law: "조세특례제한법", article: "제30조", effectiveDate: "2026-01-01", expiryDate: "2026-12-31" }],
+    calculationParams: [
+      { id: "income_tax", label: "산출 소득세", type: "number", unit: "원", required: true },
+      { id: "beneficiary_type", label: "대상자 유형", type: "select", options: [
+        { label: "청년 (만15~34세) — 90% 감면, 5년", value: "youth" },
+        { label: "60세 이상 고령자 — 70% 감면, 3년", value: "senior" },
+        { label: "장애인 — 70% 감면, 3년", value: "disabled" },
+        { label: "경력단절여성 — 70% 감면, 3년", value: "career_break" },
+      ], required: true },
+    ],
+    calculationFormula: "감면액 = min(소득세 × 90%(청년) 또는 70%(기타), 연 200만원)",
+    urgency: "year_round", difficulty: "easy",
+    steps: [
+      "① 취업자 유형 확인 (청년/고령/장애/경력단절)",
+      "② 중소기업 해당 업종 확인",
+      "③ 근로자가 연말정산 시 감면신청서 제출 (원천징수의무자에게)",
+    ],
+    contentHook: { title: "중소기업 취업하면 소득세 90% 면제! 2026년 연장 확정", hook: "청년 직원 채용하면 세금 혜택 이중으로 받는 방법", targetKeyword: "중소기업 취업자 소득세 감면 2026", estimatedViews: "medium" },
   },
   {
     id: "corp_tax_free_benefit",

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getRecommendations, getAllItems } from '@/lib/tax-data/utils'
-import { INCOME_TAX_BRACKETS_2026 } from '@/lib/tax-data/constants'
+import { INCOME_TAX_BRACKETS_2026, CORPORATE_TAX_BRACKETS_2026, INHERITANCE_TAX_BRACKETS_2026 } from '@/lib/tax-data/constants'
 import type { TargetAudience } from '@/types/tax-database'
 
 export async function POST(request: NextRequest) {
@@ -70,12 +70,12 @@ export async function POST(request: NextRequest) {
           }
           break
         }
-        // 법인전환
+        // 법인전환 — 법인세법 제55조 기준 (2023년 개정 세율: 2억 이하 9%)
         case 'biz_to_corp_conversion': {
           if (annualIncome > 88_000_000 && type === 'sole_proprietor') {
             const personalTax = calculateIncomeTax(annualIncome)
-            const corpTax = annualIncome * 0.10 // 단순 추정
-            estimatedSaving = Math.max(0, Math.round(personalTax - corpTax) * 0.4)
+            const corpTax = calculateCorporateTax(annualIncome)
+            estimatedSaving = Math.max(0, Math.round((personalTax - corpTax) * 0.4))
           }
           break
         }
@@ -151,6 +151,9 @@ export async function POST(request: NextRequest) {
       recommendations,
       totalEstimatedSaving,
       profileSummary: { type, annualIncome, targets },
+      disclaimer: "본 시뮬레이션은 2026년 현행 세법 기준 추정치이며, 개인별 상황에 따라 실제 절세 금액은 다를 수 있습니다. 정확한 세액 계산은 반드시 세무사 상담을 받으세요.",
+      dataVersion: "2026.1",
+      lastVerified: "2026-04-03",
     })
   } catch (error) {
     console.error('Tax simulator error:', error)
@@ -168,16 +171,21 @@ function calculateIncomeTax(income: number): number {
   return tax
 }
 
-function calculateInheritanceTax(value: number): number {
-  const brackets = [
-    { min: 0, max: 100_000_000, rate: 0.10 },
-    { min: 100_000_000, max: 500_000_000, rate: 0.20 },
-    { min: 500_000_000, max: 1_000_000_000, rate: 0.30 },
-    { min: 1_000_000_000, max: 3_000_000_000, rate: 0.40 },
-    { min: 3_000_000_000, max: Infinity, rate: 0.50 },
-  ]
+/** 법인세 계산 — 법인세법 제55조 (2023년 개정: 각 구간 1%p 인하) */
+function calculateCorporateTax(income: number): number {
   let tax = 0
-  for (const b of brackets) {
+  for (const bracket of CORPORATE_TAX_BRACKETS_2026) {
+    if (income <= bracket.min) break
+    const taxable = Math.min(income, bracket.max) - bracket.min
+    tax += taxable * bracket.rate
+  }
+  return tax
+}
+
+/** 상속세·증여세 계산 — 상속세 및 증여세법 제26조 */
+function calculateInheritanceTax(value: number): number {
+  let tax = 0
+  for (const b of INHERITANCE_TAX_BRACKETS_2026) {
     if (value <= b.min) break
     tax += (Math.min(value, b.max) - b.min) * b.rate
   }

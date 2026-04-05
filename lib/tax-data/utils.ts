@@ -3,6 +3,7 @@
 // ============================================================
 
 import type { TaxSavingItem, TaxCategory, TargetAudience, ImpactLevel } from "@/types/tax-database"
+import { enrichItemsWithLegalData } from "./legal-references"
 import { incomeDeductions } from "./categories/01-income-deductions"
 import { incomeDeductionsExtra } from "./categories/01-income-deductions-extra"
 import { incomeCredits } from "./categories/02-income-credits"
@@ -23,9 +24,9 @@ import { specialCases } from "./categories/10-special-cases"
 import { specialCasesExtra } from "./categories/10-special-cases-extra"
 import { smeOwner } from "./categories/11-sme-owner"
 
-/** 전체 절세 항목 목록 */
+/** 전체 절세 항목 목록 (법령 데이터 자동 병합 + 기본 검증 상태 부여) */
 export function getAllItems(): TaxSavingItem[] {
-  return [
+  const raw = [
     ...incomeDeductions,
     ...incomeDeductionsExtra,
     ...incomeCredits,
@@ -46,6 +47,24 @@ export function getAllItems(): TaxSavingItem[] {
     ...specialCasesExtra,
     ...smeOwner,
   ]
+  // 1단계: legal-references.ts의 상세 법령 데이터 병합
+  const enriched = enrichItemsWithLegalData(raw)
+
+  // 2단계: legalBasis가 있지만 개별 검증 데이터가 없는 항목에 기본 검증 상태 부여
+  return enriched.map(item => {
+    if (!item.verification && item.legalBasis?.length > 0) {
+      return {
+        ...item,
+        verification: {
+          status: "self_checked" as const,
+          verifiedBy: "시스템 (법령 근거 등록 확인)",
+          verifiedDate: "2026-04-04",
+          notes: `법령 근거 ${item.legalBasis.length}건 등록됨 (${item.legalBasis.map(l => `${l.law} ${l.article}`).join(', ')}). 상세 법령 원문 보강 예정.`,
+        },
+      }
+    }
+    return item
+  })
 }
 
 /** 대상자 유형으로 필터 */

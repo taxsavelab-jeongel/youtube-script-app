@@ -7,6 +7,15 @@ interface StreamingTextProps {
   className?: string
 }
 
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/^#{1,6}\s?/gm, '')
+    .replace(/\*\*/g, '')
+    .replace(/\*/g, '')
+    .replace(/`/g, '')
+    .replace(/^---+$/gm, '')
+}
+
 export default function StreamingText({
   text,
   isStreaming,
@@ -14,7 +23,7 @@ export default function StreamingText({
 }: StreamingTextProps) {
   return (
     <span className={className}>
-      {text}
+      {stripMarkdown(text)}
       {isStreaming && (
         <span className="inline-block w-0.5 h-4 bg-blue-500 ml-0.5 animate-pulse align-middle" />
       )}

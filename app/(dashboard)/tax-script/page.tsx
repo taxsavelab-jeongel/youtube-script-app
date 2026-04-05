@@ -16,7 +16,15 @@ interface ContentIdea {
   subcategory: string
   impactLevel: string
   targetAudience: string[]
+  verificationStatus?: 'unverified' | 'self_checked' | 'expert_reviewed' | 'outdated'
+  verifiedDate?: string | null
+  hasLegalTexts?: boolean
+  legalBasisCount?: number
+  legalSourceUrl?: string | null
+  legalSourceName?: string | null
 }
+
+type ContentMode = 'youtube' | 'blog'
 
 export default function TaxScriptPage() {
   const [ideas, setIdeas] = useState<ContentIdea[]>([])
@@ -27,6 +35,9 @@ export default function TaxScriptPage() {
   const [isLoadingIdeas, setIsLoadingIdeas] = useState(false)
   const [filter, setFilter] = useState('all')
   const abortRef = useRef<AbortController | null>(null)
+  const [contentMode, setContentMode] = useState<ContentMode>('youtube')
+  const [blogLength, setBlogLength] = useState<'short' | 'medium' | 'long'>('medium')
+  const [blogTone, setBlogTone] = useState<'casual' | 'professional'>('professional')
 
   const loadIdeas = async () => {
     setIsLoadingIdeas(true)
@@ -47,10 +58,15 @@ export default function TaxScriptPage() {
     abortRef.current = new AbortController()
 
     try {
-      const res = await fetch('/api/tax-script/generate', {
+      const apiUrl = contentMode === 'blog' ? '/api/tax-blog/generate' : '/api/tax-script/generate'
+      const body = contentMode === 'blog'
+        ? { topic, itemId, blogLength, tone: blogTone }
+        : { topic, itemId }
+
+      const res = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic, itemId }),
+        body: JSON.stringify(body),
         signal: abortRef.current.signal,
       })
 
@@ -98,8 +114,8 @@ export default function TaxScriptPage() {
       <nav className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-xl">🎬</span>
-            <span className="font-bold text-gray-900">절세 유튜브 스크립트 생성기</span>
+            <span className="text-xl">{contentMode === 'youtube' ? '🎬' : '📝'}</span>
+            <span className="font-bold text-gray-900">절세 콘텐츠 생성기</span>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/tax-simulator" className="text-sm text-gray-600 hover:text-blue-600">절세 시뮬레이터</Link>
@@ -109,6 +125,37 @@ export default function TaxScriptPage() {
       </nav>
 
       <main className="max-w-6xl mx-auto px-4 py-8">
+        {/* 유튜브/블로그 탭 전환 */}
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => { setContentMode('youtube'); setScript('') }}
+            className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-all ${
+              contentMode === 'youtube' ? 'bg-red-600 text-white shadow-md' : 'bg-white border text-gray-600 hover:bg-gray-50'
+            }`}
+          >🎬 유튜브 대본</button>
+          <button
+            onClick={() => { setContentMode('blog'); setScript('') }}
+            className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-all ${
+              contentMode === 'blog' ? 'bg-blue-600 text-white shadow-md' : 'bg-white border text-gray-600 hover:bg-gray-50'
+            }`}
+          >📝 블로그 글</button>
+
+          {contentMode === 'blog' && (
+            <div className="flex gap-2 ml-4 items-center">
+              <select value={blogLength} onChange={e => setBlogLength(e.target.value as any)}
+                className="text-xs border rounded-lg px-2 py-1.5 text-gray-600">
+                <option value="short">짧은 글 (1,500자)</option>
+                <option value="medium">보통 (3,000자)</option>
+                <option value="long">긴 글 (5,000자)</option>
+              </select>
+              <select value={blogTone} onChange={e => setBlogTone(e.target.value as any)}
+                className="text-xs border rounded-lg px-2 py-1.5 text-gray-600">
+                <option value="professional">전문적</option>
+                <option value="casual">친근한</option>
+              </select>
+            </div>
+          )}
+        </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* 왼쪽: 콘텐츠 아이디어 */}
           <div className="space-y-4">
@@ -175,13 +222,37 @@ export default function TaxScriptPage() {
                           {viewsEmoji(idea.contentHook.estimatedViews)} {idea.contentHook.title}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">{idea.contentHook.hook}</p>
-                        <div className="flex gap-2 mt-2">
+                        <div className="flex flex-wrap gap-1.5 mt-2">
                           <span className="text-xs px-2 py-0.5 bg-gray-100 rounded-full text-gray-600">
                             {idea.subcategory}
                           </span>
                           <span className="text-xs px-2 py-0.5 bg-blue-100 rounded-full text-blue-600">
                             SEO: {idea.contentHook.targetKeyword}
                           </span>
+                          {/* 검증 상태 배지 */}
+                          {idea.verificationStatus === 'expert_reviewed' ? (
+                            <span className="text-xs px-2 py-0.5 bg-green-100 rounded-full text-green-700">✅ 세무사 검증</span>
+                          ) : idea.verificationStatus === 'self_checked' ? (
+                            <span className="text-xs px-2 py-0.5 bg-emerald-50 rounded-full text-emerald-600">✔ 법령 대조</span>
+                          ) : idea.verificationStatus === 'outdated' ? (
+                            <span className="text-xs px-2 py-0.5 bg-red-100 rounded-full text-red-600">⚠ 구법</span>
+                          ) : (
+                            <span className="text-xs px-2 py-0.5 bg-yellow-100 rounded-full text-yellow-700">미검증</span>
+                          )}
+                          {idea.legalSourceUrl ? (
+                            <a
+                              href={idea.legalSourceUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="text-xs px-2 py-0.5 bg-indigo-50 rounded-full text-indigo-600 hover:bg-indigo-100 hover:underline transition-colors"
+                              title={idea.legalSourceName || '법령 원문 보기'}
+                            >
+                              📜 {idea.hasLegalTexts ? '법령원문' : (idea.legalSourceName || '법령 확인')}
+                            </a>
+                          ) : idea.hasLegalTexts ? (
+                            <span className="text-xs px-2 py-0.5 bg-indigo-50 rounded-full text-indigo-600">📜 법령원문</span>
+                          ) : null}
                         </div>
                       </div>
                     </div>
@@ -195,19 +266,46 @@ export default function TaxScriptPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-gray-900">
-                {isGenerating ? '스크립트 생성 중...' : '생성된 스크립트'}
+                {isGenerating
+                  ? (contentMode === 'blog' ? '블로그 글 생성 중...' : '스크립트 생성 중...')
+                  : (contentMode === 'blog' ? '생성된 블로그 글' : '생성된 스크립트')}
               </h2>
               {isGenerating && (
                 <button onClick={handleStop} className="text-sm text-red-500 hover:text-red-700">중단</button>
               )}
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border min-h-[600px] p-6">
+            <div className="bg-white rounded-xl shadow-sm border min-h-[600px] p-6 overflow-y-auto">
               {script ? (
-                <div className="prose prose-sm max-w-none">
-                  <pre className="whitespace-pre-wrap font-sans text-sm text-gray-800 leading-relaxed">
-                    {script}
-                  </pre>
+                <div className="max-w-none">
+                  {(() => {
+                    const cleaned = script
+                      .replace(/^#{1,6}\s?/gm, '')
+                      .replace(/\*\*/g, '').replace(/\*/g, '').replace(/`/g, '')
+                      .replace(/^---+$/gm, '')
+                    // 이미지 URL을 감지하여 텍스트+이미지로 분리 렌더링
+                    const parts = cleaned.split(/(https:\/\/images\.unsplash\.com\/[^\s\n]+)/g)
+                    return parts.map((part, i) => {
+                      if (part.startsWith('https://images.unsplash.com/')) {
+                        return (
+                          <div key={i} className="my-4">
+                            <img
+                              src={part.trim()}
+                              alt="블로그 이미지"
+                              className="w-full rounded-xl shadow-sm max-h-80 object-cover"
+                              loading="lazy"
+                            />
+                            <p className="text-xs text-gray-400 mt-1 text-center">출처: Unsplash (무료 이미지)</p>
+                          </div>
+                        )
+                      }
+                      return (
+                        <pre key={i} className="whitespace-pre-wrap font-sans text-sm text-gray-800 leading-relaxed">
+                          {part}
+                        </pre>
+                      )
+                    })
+                  })()}
                 </div>
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-400 text-sm">

@@ -146,9 +146,28 @@ export default function AdminReviewPage() {
             placeholder="세무사 이름 입력"
             className="border rounded-lg px-3 py-1.5 text-sm w-48"
           />
-          <button onClick={exportReview} className="ml-auto text-sm px-4 py-1.5 bg-gray-800 text-white rounded-lg hover:bg-gray-900">
-            CSV 내보내기
-          </button>
+          <div className="ml-auto flex gap-2">
+            <button
+              onClick={async () => {
+                if (!confirm('AI가 전체 항목을 자동 감수합니다. 기존 검토 결과가 덮어씌워집니다. 계속할까요?')) return
+                try {
+                  const res = await fetch('/api/admin/auto-review')
+                  const data = await res.json()
+                  setReviews(data.reviews)
+                  localStorage.setItem('tax_reviews', JSON.stringify(data.reviews))
+                  localStorage.setItem('reviewer_name', 'AI 자동감수')
+                  setReviewerName('AI 자동감수')
+                  alert(`감수 완료! 승인 ${data.summary.approved}건 / 수정필요 ${data.summary.needsUpdate}건 / 반려 ${data.summary.rejected}건 (승인율 ${data.summary.approvedRate}%)`)
+                } catch { alert('감수 중 오류가 발생했습니다.') }
+              }}
+              className="text-sm px-4 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              🤖 AI 일괄 감수
+            </button>
+            <button onClick={exportReview} className="text-sm px-4 py-1.5 bg-gray-800 text-white rounded-lg hover:bg-gray-900">
+              CSV 내보내기
+            </button>
+          </div>
         </div>
 
         {/* 통계 */}

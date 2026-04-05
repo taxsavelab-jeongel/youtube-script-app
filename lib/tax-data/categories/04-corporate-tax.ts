@@ -7,32 +7,53 @@ import type { TaxSavingItem } from "@/types/tax-database"
 export const corporateTax: TaxSavingItem[] = [
   {
     id: "corp_startup_reduction",
-    version: "2026.1", lastUpdated: "2026-01-01",
+    version: "2026.2", lastUpdated: "2026-01-01",
     category: "corporate", subcategory: "창업감면",
     savingType: "reduction", targetAudience: ["corporation", "youth"],
-    name: "창업중소기업 세액감면",
-    shortDescription: "창업 후 5년간 법인세 50~100% 감면",
-    fullDescription: "수도권 과밀억제권역 외 창업 시 5년간 법인세 50~100% 감면. 청년(만15~34세)은 비수도권 100%, 수도권외곽 75%, 과밀권역내 50%. 2026년부터 청년 수도권외곽 감면율 75%로 조정.",
-    tags: ["창업감면", "중소기업", "청년창업", "법인세감면"],
-    impactLevel: "very_high", maxSavingAmount: 100_000_000, applicableRate: "50~100%",
+    name: "창업중소기업 세액감면 (2026 지역 세분화)",
+    shortDescription: "창업 후 5년간 법인세 50~100% 감면 — 2026년부터 수도권 구분 세분화",
+    fullDescription: `창업 후 5년간 법인세(또는 소득세)를 감면하는 제도로, 2026.1.1 이후 창업분부터 지역 구분이 세분화됩니다.
+
+■ 2026년 감면율 (2026.1.1 이후 창업분)
+  지역별 구분 3단계로 세분화:
+  ① 수도권 과밀억제권역: 50% 감면
+  ② 비과밀억제 수도권 (과밀 외 수도권): 75% 감면  ← 2026년 신설
+  ③ 수도권 외 지역 또는 인구감소지역: 100% 감면
+
+■ 청년 창업자 (만 15~34세, 병역복무 최대 6년 추가)
+  동일 지역 기준 적용 (동일 감면율)
+
+■ 감면 적용 요건
+  - 조세특례제한법 §6③ 해당 업종: 제조업, 건설업, 출판업, 음식점업 등 18개 업종
+  - 창업일로부터 5년간 (매년 법인세 신고 시 신청)
+  - 최소 고용인원 기준 별도 확인 필요`,
+    tags: ["창업감면", "중소기업", "청년창업", "법인세감면", "수도권세분화"],
+    impactLevel: "very_high", maxSavingAmount: 100_000_000, applicableRate: "50%(과밀) / 75%(비과밀수도권) / 100%(비수도권·인구감소)",
     requirements: [
       { id: "req_1", description: "중소기업 창업", type: "business_type", critical: true },
-      { id: "req_2", description: "조세특례제한법 §6③ 업종 해당", type: "business_type", value: "제조업, 건설업 등 18개 업종", critical: true },
+      { id: "req_2", description: "조세특례제한법 §6③ 업종 해당 (18개 업종)", type: "business_type", value: "제조업, 건설업 등 18개 업종", critical: true },
+      { id: "req_3", description: "2026.1.1 이후 창업분에 세분화 감면율 적용", type: "period", critical: false },
     ],
     legalBasis: [{ law: "조세특례제한법", article: "제6조", url: "https://www.law.go.kr/LSW//lsLawLinkInfo.do?lsJoLnkSeq=900239530&chrClsCd=010202&lsId=001584", effectiveDate: "2026-01-01" }],
     calculationParams: [
       { id: "corp_tax", label: "법인세 산출세액", type: "number", unit: "원", required: true },
       { id: "region", label: "사업장 소재지", type: "select", options: [
-        { label: "수도권 과밀억제권역", value: "capital_metro" },
-        { label: "수도권 (과밀 외)", value: "capital_non_metro" },
-        { label: "비수도권", value: "non_capital" },
+        { label: "수도권 과밀억제권역 (50% 감면)", value: "capital_metro" },
+        { label: "비과밀억제 수도권 (75% 감면)", value: "capital_non_metro" },
+        { label: "수도권 외 / 인구감소지역 (100% 감면)", value: "non_capital" },
       ], required: true },
-      { id: "is_youth", label: "청년 대표 여부", type: "boolean", required: true },
+      { id: "is_youth", label: "청년 대표 여부 (만15~34세)", type: "boolean", required: true },
     ],
-    calculationFormula: "감면세액 = 산출세액 × 감면율(50~100%). 업종별 최소고용인원 충족 시 추가감면 가능.",
+    calculationFormula: "감면세액 = 산출세액 × 감면율. 과밀: 50%, 비과밀수도권: 75%, 비수도권·인구감소: 100%",
     urgency: "year_round", difficulty: "medium",
-    steps: ["업종 해당 여부 확인 (18개 업종)", "청년 해당 여부 확인 (만15~34세, 병역 최대 6년 추가)", "법인세 신고 시 세액감면 신청서 별도 제출"],
-    contentHook: { title: "청년 사장님, 5년간 법인세 0원 가능합니다", hook: "수도권 밖에서 창업하면 5년간 세금 100% 면제!", targetKeyword: "창업중소기업 세액감면 2026", estimatedViews: "high" },
+    steps: [
+      "① 사업장이 수도권 과밀억제권역인지 확인 (국토교통부 고시)",
+      "② 비과밀억제 수도권 해당 시 75% 감면 (2026년 신설 구간)",
+      "③ 업종 해당 여부 확인 (18개 업종)",
+      "④ 청년 해당 여부 확인 (만15~34세, 병역 최대 6년 추가)",
+      "⑤ 법인세 신고 시 세액감면 신청서 별도 제출",
+    ],
+    contentHook: { title: "2026년 창업감면 달라졌습니다 — 수도권도 최대 75% 가능!", hook: "수도권 창업해도 과밀 아니면 75% 감면! 내 사무실이 어디냐가 핵심", targetKeyword: "창업중소기업 세액감면 2026 수도권", estimatedViews: "high" },
   },
   {
     id: "corp_sme_special_reduction",
@@ -99,26 +120,30 @@ export const corporateTax: TaxSavingItem[] = [
     version: "2026.1", lastUpdated: "2026-01-01",
     category: "corporate", subcategory: "고용 세액공제",
     savingType: "credit", targetAudience: ["corporation", "sole_proprietor"],
-    name: "고용증대 세액공제",
-    shortDescription: "신규 고용 1인당 최대 1,550만원 세액공제 (3년간)",
-    fullDescription: "전년 대비 상시근로자 수가 증가한 경우, 증가 인원 1인당 중소기업 기준 수도권 950만원, 비수도권 1,100만원 공제 (3년간). 청년·장애인·경력단절여성은 수도권 1,450만원, 비수도권 1,550만원.",
-    tags: ["고용증대", "세액공제", "채용", "일자리"],
-    impactLevel: "high", maxSavingAmount: 15_500_000, applicableRate: "1인당 950~1,550만원 (3년)",
+    name: "통합고용세액공제 (2026 개편)",
+    shortDescription: "신규 고용 1인당 최대 1,300만원, 사후관리 폐지 (점증적 공제)",
+    fullDescription: "2026년 통합고용세액공제(조특법 제29조의8) 개편. 사후관리 요건 폐지로 추징 위험 제거. 점증적 공제 구조: 수도권 400만→900만→1,000만원, 지방 700만→1,200만→1,300만원 (연차별 증가). 고용을 유지할수록 공제액이 늘어나는 구조.",
+    tags: ["통합고용세액공제", "고용증대", "세액공제", "채용", "사후관리폐지"],
+    impactLevel: "high", maxSavingAmount: 13_000_000, applicableRate: "수도권 400~1,000만 / 지방 700~1,300만 (연차별)",
     requirements: [
       { id: "req_1", description: "전년 대비 상시근로자 수 증가", type: "employment", critical: true },
     ],
-    legalBasis: [{ law: "조세특례제한법", article: "제29조의7", effectiveDate: "2026-01-01" }],
+    legalBasis: [{ law: "조세특례제한법", article: "제29조의8", effectiveDate: "2026-01-01" }],
     calculationParams: [
       { id: "new_employees", label: "신규 고용 인원", type: "number", unit: "명", required: true },
-      { id: "youth_employees", label: "청년 고용 인원", type: "number", unit: "명", required: false },
+      { id: "employ_year", label: "고용 연차", type: "select", options: [
+        { label: "1년차", value: "year1" },
+        { label: "2년차", value: "year2" },
+        { label: "3년차", value: "year3" },
+      ], required: true },
       { id: "region", label: "사업장 소재지", type: "select", options: [
         { label: "수도권", value: "capital" },
-        { label: "비수도권", value: "non_capital" },
+        { label: "지방(비수도권)", value: "non_capital" },
       ], required: true },
     ],
-    calculationFormula: "공제액 = 일반 증가인원 × 950~1,100만 + 청년 증가인원 × 1,450~1,550만 (3년간)",
+    calculationFormula: "공제액 = 증가인원 × 연차별 공제금액 (수도권: 1년차 400만/2년차 900만/3년차 1000만, 지방: 1년차 700만/2년차 1200만/3년차 1300만)",
     urgency: "year_round", difficulty: "medium",
-    steps: ["전년 대비 고용 증가 확인", "청년·장애인 등 우대 대상 구분", "법인세 신고 시 세액공제 신청"],
+    steps: ["전년 대비 고용 증가 확인", "사업장 소재지(수도권/지방) 확인", "고용 연차별 공제금액 계산", "법인세 신고 시 세액공제 신청 (사후관리 불필요)"],
   },
   {
     id: "corp_ceo_salary_design",

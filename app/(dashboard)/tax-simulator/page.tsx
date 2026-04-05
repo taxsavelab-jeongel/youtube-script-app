@@ -61,6 +61,16 @@ interface Recommendation {
   steps: string[]
   contentHook?: { title: string }
   warnings?: string[]
+  category?: string
+  subcategory?: string
+}
+
+interface SimulationResult {
+  recommendations: Recommendation[]
+  totalEstimatedSaving: number
+  disclaimer?: string
+  dataVersion?: string
+  lastVerified?: string
 }
 
 export default function TaxSimulatorPage() {
@@ -68,6 +78,8 @@ export default function TaxSimulatorPage() {
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE)
   const [results, setResults] = useState<Recommendation[]>([])
   const [totalSaving, setTotalSaving] = useState(0)
+  const [disclaimer, setDisclaimer] = useState('')
+  const [dataVersion, setDataVersion] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -85,9 +97,11 @@ export default function TaxSimulatorPage() {
         body: JSON.stringify(profile),
       })
       if (!res.ok) throw new Error('분석 실패')
-      const data = await res.json()
+      const data: SimulationResult = await res.json()
       setResults(data.recommendations)
       setTotalSaving(data.totalEstimatedSaving)
+      setDisclaimer(data.disclaimer || '')
+      setDataVersion(data.dataVersion || '')
       setStep('result')
     } catch {
       setError('절세 분석 중 오류가 발생했습니다. 다시 시도해주세요.')
@@ -340,9 +354,21 @@ export default function TaxSimulatorPage() {
               </Link>
             </div>
 
-            <p className="text-xs text-gray-400 text-center">
-              * 본 결과는 정보 제공 목적이며, 법적 효력이 없습니다. 반드시 세무사 상담을 받으세요.
-            </p>
+            {/* 법령 근거 및 면책 */}
+            <div className="bg-gray-100 rounded-xl p-4 space-y-2">
+              {dataVersion && (
+                <p className="text-xs text-gray-500 flex items-center gap-1">
+                  <span className="w-2 h-2 bg-green-400 rounded-full inline-block" />
+                  데이터 버전: {dataVersion} | 2026년 현행 세법 기준
+                </p>
+              )}
+              <p className="text-xs text-gray-500">
+                {disclaimer || '* 본 결과는 정보 제공 목적이며, 법적 효력이 없습니다. 반드시 세무사 상담을 받으세요.'}
+              </p>
+              <p className="text-xs text-gray-400">
+                근거 법령: 소득세법, 법인세법, 상속세 및 증여세법, 조세특례제한법 등 | 세율·한도는 코드 기반 계산 (AI 추정 아님)
+              </p>
+            </div>
           </div>
         )}
       </main>

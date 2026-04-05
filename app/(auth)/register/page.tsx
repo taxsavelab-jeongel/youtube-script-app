@@ -1,5 +1,5 @@
 'use client'
-// Design Ref: §7 Authentication — 회원가입 페이지
+// Design Ref: §7 Authentication — 회원가입 페이지 (5개 필드)
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -9,6 +9,9 @@ export default function RegisterPage() {
   const router = useRouter()
 
   const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [company, setCompany] = useState('')
+  const [job, setJob] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState('')
@@ -32,7 +35,7 @@ export default function RegisterPage() {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, phone, company, job, password }),
       })
 
       const data = await res.json()
@@ -41,7 +44,7 @@ export default function RegisterPage() {
         return
       }
 
-      router.push('/generate')
+      router.push('/')
       router.refresh()
     } catch {
       setError('서버에 연결할 수 없습니다.')
@@ -51,13 +54,13 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="text-4xl mb-3">🎬</div>
           <h1 className="text-2xl font-bold text-gray-900">회원가입</h1>
           <p className="text-sm text-gray-500 mt-1">
-            무료로 시작하고 스크립트를 저장하세요
+            정엘 사업단 내부 서비스
           </p>
         </div>
 
@@ -74,6 +77,48 @@ export default function RegisterPage() {
                 placeholder="you@example.com"
                 required
                 autoFocus
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                핸드폰 번호
+              </label>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="010-0000-0000"
+                required
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                직장명
+              </label>
+              <input
+                type="text"
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+                placeholder="회사 또는 기관명"
+                required
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                하는 일 / 직무
+              </label>
+              <input
+                type="text"
+                value={job}
+                onChange={(e) => setJob(e.target.value)}
+                placeholder="예: 세무사, 컨설턴트, 영업팀 등"
+                required
                 className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>

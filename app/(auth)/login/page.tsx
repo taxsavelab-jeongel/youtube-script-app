@@ -117,12 +117,6 @@ export default function LoginPage() {
         <Suspense fallback={<div className="bg-white rounded-xl border border-gray-200 p-6 text-center text-gray-400">로딩 중...</div>}>
           <LoginForm />
         </Suspense>
-
-        <div className="mt-4 text-center">
-          <Link href="/generate" className="text-sm text-gray-400 hover:text-gray-600 transition-colors">
-            ← 로그인 없이 계속하기
-          </Link>
-        </div>
       </div>
     </div>
   )

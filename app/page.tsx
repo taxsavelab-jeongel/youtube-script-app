@@ -28,9 +28,9 @@ export default function Home() {
             className="block p-6 bg-white rounded-2xl shadow-sm border hover:shadow-md transition-shadow"
           >
             <span className="text-3xl">🎬</span>
-            <h2 className="font-bold text-gray-900 mt-3">절세 스크립트</h2>
+            <h2 className="font-bold text-gray-900 mt-3">절세 콘텐츠</h2>
             <p className="text-sm text-gray-500 mt-1">
-              절세 주제 유튜브 영상 대본 자동 생성
+              유튜브 대본 + 블로그 글 자동 생성
             </p>
           </Link>
 
@@ -46,14 +46,24 @@ export default function Home() {
           </Link>
         </div>
 
-        <Link
-          href="/admin/review"
-          className="block p-4 bg-gray-800 text-white rounded-2xl shadow-sm hover:bg-gray-900 transition-colors text-center"
-        >
-          <span className="text-lg">🔍</span>
-          <span className="font-medium ml-2">세무사 감수 관리 (관리자)</span>
-          <span className="text-xs text-gray-400 ml-2">80개 항목 검토 현황</span>
-        </Link>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Link
+            href="/admin/review"
+            className="block p-4 bg-gray-800 text-white rounded-2xl shadow-sm hover:bg-gray-900 transition-colors text-center"
+          >
+            <span className="text-lg">🔍</span>
+            <span className="font-medium ml-2">세무사 감수</span>
+            <span className="text-xs text-gray-400 ml-2">80개 항목</span>
+          </Link>
+          <Link
+            href="/admin/verify"
+            className="block p-4 bg-blue-700 text-white rounded-2xl shadow-sm hover:bg-blue-800 transition-colors text-center"
+          >
+            <span className="text-lg">✅</span>
+            <span className="font-medium ml-2">법령 검증</span>
+            <span className="text-xs text-blue-200 ml-2">법제처 API 연동</span>
+          </Link>
+        </div>
 
         <p className="text-xs text-gray-400">
           * 본 서비스는 정보 제공 목적이며, 정확한 세무 상담은 세무사에게 받으세요

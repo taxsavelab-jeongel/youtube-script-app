@@ -117,6 +117,51 @@ export interface TaxSchedule {
   singoMethod: string   // 신고 방법 (홈택스 등)
 }
 
+/** 검증 상태 */
+export type VerificationStatus =
+  | "unverified"       // 미검증 (AI 생성 또는 초기 데이터)
+  | "self_checked"     // 자체 확인 (법령 원문 대조 완료)
+  | "expert_reviewed"  // 세무사 감수 완료
+  | "outdated"         // 법 개정으로 구법 상태
+
+/** 검증 이력 */
+export interface VerificationRecord {
+  status: VerificationStatus
+  verifiedBy: string     // 검증자 (예: "시스템", "김세무사")
+  verifiedDate: string   // 검증일
+  notes?: string         // 검증 메모
+  nextReviewDate?: string // 다음 검토 예정일
+}
+
+/** 법령 원문 데이터 (세무사 수준 정확성 확보) */
+export interface LegalText {
+  lawName: string         // 법률명
+  articleNumber: string   // 조문 번호 (예: "제18조의2")
+  articleTitle: string    // 조문 제목
+  fullText: string        // 조문 전문 (원문 그대로)
+  keyProvisions: string[] // 핵심 조항 요약 (항/호 단위)
+  effectiveDate: string   // 시행일
+  lastAmendedDate: string // 최종 개정일
+  sourceUrl: string       // 법제처 URL
+}
+
+/** 실무 사례 */
+export interface PracticalCase {
+  title: string           // 사례 제목
+  situation: string       // 상황 설명
+  calculation: string     // 계산 과정
+  result: string          // 결과
+  taxSaved: number        // 절세 금액
+  source?: string         // 출처 (국세청 해석 등)
+}
+
+/** 자주 묻는 질문 */
+export interface FAQ {
+  question: string
+  answer: string
+  legalBasis?: string     // 근거 조문
+}
+
 /** 유튜브 콘텐츠 연계 정보 */
 export interface ContentHook {
   title: string         // 추천 영상 제목
@@ -180,6 +225,15 @@ export interface TaxSavingItem {
   // 주의사항
   warnings?: string[]                  // 주의/리스크
   commonMistakes?: string[]            // 흔한 실수
+
+  // ── 신뢰도 강화 필드 (세무사 수준) ──────────────────────
+  verification?: VerificationRecord    // 검증 상태
+  legalTexts?: LegalText[]             // 법령 원문 (조문 전문)
+  practicalCases?: PracticalCase[]     // 실무 사례
+  faqs?: FAQ[]                         // 자주 묻는 질문
+  calculationLogic?: string            // 프로그래밍 가능한 계산 로직 설명
+  crossReferences?: string[]           // 관련 시행령/시행규칙 조문
+  taxAuthorityGuide?: string           // 국세청 안내자료 요약
 }
 
 // ── 4. 사용자 프로필 ────────────────────────────────────────

@@ -22,6 +22,8 @@ export { financialInvestmentExtra } from "./categories/09-financial-investment-e
 export { specialCases } from "./categories/10-special-cases"
 export { specialCasesExtra } from "./categories/10-special-cases-extra"
 export { smeOwner } from "./categories/11-sme-owner"
+export { commercialLaw } from "./categories/12-commercial-law"
+export { taxCases } from "./categories/13-tax-cases"
 
 export { TAX_CATEGORY_MAP } from "./constants"
 export { getAllItems, getItemsByTarget, getItemsByCategory, searchItems, getContentIdeas, getRecommendations, getStats } from "./utils"

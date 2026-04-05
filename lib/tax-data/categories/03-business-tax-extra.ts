@@ -30,26 +30,53 @@ export const businessTaxExtra: TaxSavingItem[] = [
   },
   {
     id: "biz_vehicle_expense",
-    version: "2026.1", lastUpdated: "2026-01-01",
+    version: "2026.2", lastUpdated: "2026-01-01",
     category: "income", subcategory: "차량경비",
     savingType: "deduction", targetAudience: ["sole_proprietor", "corporation"],
-    name: "업무용 승용차 경비 한도",
-    shortDescription: "업무용 차량 감가상각+유지비 연 1,500만원 한도",
-    fullDescription: "업무 전용 보험에 가입한 차량의 감가상각비, 유류비, 보험료, 수리비 등을 연간 1,500만원 한도로 경비 처리. 업무사용 비율에 따라 안분. 운행일지 작성 시 경비 인정률 상승.",
-    tags: ["업무용차량", "감가상각", "차량경비", "운행일지"],
-    impactLevel: "high", maxDeductionAmount: 15_000_000, applicableRate: "연 1,500만원 한도",
+    name: "업무용 승용차 경비 한도 (2026 부분기간 보험 가입 개정)",
+    shortDescription: "업무용 차량 연 1,500만원 한도 — 1대 초과분은 가입기간 비율만큼 경비 인정",
+    fullDescription: `업무 전용 보험에 가입한 차량의 감가상각비, 유류비, 보험료, 수리비 등을 연간 1,500만원 한도로 경비 처리.
+
+■ 기본 원칙
+  - 업무전용 자동차보험 가입이 경비 처리의 전제 조건
+  - 운행일지 작성 시 업무사용비율만큼 경비 인정 (미작성 시 100만원 이하만 인정)
+
+■ 2026년 개정 — 1대 초과 차량 부분기간 보험 가입 시 (신설)
+  업무용 승용차를 2대 이상 운용하는 경우, 2번째 차량부터:
+  - 연중 일부 기간만 업무전용 보험에 가입한 경우
+  - 가입 기간 비율에 따라 경비를 안분하여 인정
+  예) 7월부터 12월까지 가입(6개월) → 해당 차량 비용의 6/12(50%)만 경비 인정
+
+■ 기존 규정 (1대까지)
+  - 연간 1,500만원 한도 (감가상각비 포함)
+  - 업무전용 보험 미가입 시 전액 비용 불인정`,
+    tags: ["업무용차량", "감가상각", "차량경비", "운행일지", "부분기간보험"],
+    impactLevel: "high", maxDeductionAmount: 15_000_000, applicableRate: "연 1,500만원 한도 (1대 초과분: 보험가입기간 비율 적용)",
     requirements: [
-      { id: "r1", description: "업무전용 자동차보험 가입", type: "other", critical: true },
+      { id: "r1", description: "업무전용 자동차보험 가입 (필수)", type: "other", critical: true },
       { id: "r2", description: "운행일지 작성 (경비 한도 초과 시)", type: "other", critical: false },
+      { id: "r3", description: "1대 초과 차량: 가입기간 비율로 경비 안분 (2026년 신설)", type: "other", critical: false },
     ],
-    legalBasis: [{ law: "소득세법 시행령", article: "제78조의3", effectiveDate: "2026-01-01" }],
+    legalBasis: [
+      { law: "소득세법 시행령", article: "제78조의3", effectiveDate: "2026-01-01" },
+      { law: "법인세법 시행령", article: "제50조의2", effectiveDate: "2026-01-01" },
+    ],
     calculationParams: [
+      { id: "vehicle_count", label: "업무용 차량 대수", type: "number", unit: "대", required: true },
       { id: "vehicle_cost", label: "차량 관련 연간 총비용", type: "number", unit: "원", required: true },
       { id: "biz_usage", label: "업무 사용 비율 (%)", type: "number", unit: "%", required: true },
+      { id: "insurance_months", label: "1대 초과 차량 업무전용 보험 가입 개월 수", type: "number", unit: "개월", min: 1, max: 12, required: false },
     ],
-    calculationFormula: "경비 = min(차량비용 × 업무사용비율, 1,500만원)", urgency: "year_round", difficulty: "medium",
-    steps: ["업무전용 보험 가입", "운행일지 작성 (앱 활용)", "연간 차량비용 집계", "한도 내 경비 처리"],
-    contentHook: { title: "사장님 차, 연 1,500만원 경비처리 하는 방법", hook: "운행일지 하나면 기름값·보험료·감가상각 다 경비!", targetKeyword: "업무용차량 경비 한도", estimatedViews: "high" },
+    calculationFormula: "1대: 경비 = min(차량비용 × 업무비율, 1,500만). 2대↑: 경비 = 차량비용 × (가입개월/12) × 업무비율, 한도 1,500만",
+    urgency: "year_round", difficulty: "medium",
+    steps: [
+      "① 업무전용 보험 가입 (전 차량 필수)",
+      "② 2대 이상인 경우: 각 차량 보험 가입 기간 확인",
+      "③ 운행일지 작성 (앱 활용 — 한도 초과 차량)",
+      "④ 연간 차량비용 집계 및 가입기간 비율 계산",
+      "⑤ 한도 내 경비 처리 (신고 시 차량 목록 첨부)",
+    ],
+    contentHook: { title: "차 2대 있는 사장님 주목! 2026년 차량경비 규정 바뀌었습니다", hook: "보험 중간에 가입해도 경비 인정! 단, 기간 비율만큼만", targetKeyword: "업무용차량 경비 한도 2026 부분기간", estimatedViews: "high" },
   },
   {
     id: "biz_estimated_expense",

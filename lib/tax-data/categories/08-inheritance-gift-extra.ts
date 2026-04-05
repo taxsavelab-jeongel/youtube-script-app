@@ -108,4 +108,67 @@ export const inheritanceGiftExtra: TaxSavingItem[] = [
     steps: ["비상장주식 순자산/순손익가치 평가", "부동산 공시가격 vs 감정평가 비교", "평가액이 낮은 시점에 증여 실행"],
     contentHook: { title: "비상장주식 증여, 타이밍이 수억 차이 만든다", hook: "같은 주식인데 언제 증여하느냐에 따라 세금 50% 차이!", targetKeyword: "비상장주식 증여 평가", estimatedViews: "medium" },
   },
+  // ── 영리법인 수유자 상속세 과세 범위 확대 ────────────────────
+  {
+    id: "inheritance_profit_corp_heir_expansion",
+    version: "2026.1", lastUpdated: "2026-01-01",
+    category: "inheritance", subcategory: "법인수유자",
+    savingType: "structure", targetAudience: ["business_owner", "corporation", "heir"],
+    name: "영리법인 수유자 상속세 과세 범위 확대 (2026.1.1↑)",
+    shortDescription: "영리법인이 유증·사인증여를 받을 때 과세 대상 주주 범위 확대",
+    fullDescription: `2026년 1월 1일 이후 개시하는 상속분부터 영리법인이 유증(遺贈) 또는 사인증여를 받는 경우의 상속세 과세 범위가 확대됩니다.
+
+■ 개정 전 (2025년까지)
+  영리법인이 수유자(유증 받는 자)인 경우, 해당 법인의 주주 중
+  → 상속인 및 그 직계비속에 한하여 상속세 과세
+
+■ 개정 후 (2026.1.1 이후 상속분)
+  영리법인이 수유자인 경우, 해당 법인의 주주 중
+  → 상속인 및 그 직계비속, + 상속인의 배우자, + 직계비속의 배우자에 대해서도 과세
+  → 과세 대상 친족 범위 확대
+
+■ 실무 영향
+  1. 법인에 재산을 유증하는 방식으로 상속세를 회피하던 구조 차단
+  2. 법인 지분을 보유한 배우자·며느리·사위에게도 상속세 부담 발생
+  3. 가족법인에 재산 유증 시 세무 시뮬레이션 필수
+  4. 기존 유언장·유증 계획을 세무사와 재검토 필요
+
+■ 핵심 키워드
+  수유자(受遺者): 유증으로 재산을 받는 사람
+  사인증여: 증여자 사망을 조건으로 한 증여 (상속세 과세)`,
+    tags: ["영리법인수유자", "유증", "상속세", "법인주주", "사인증여", "2026개정"],
+    impactLevel: "high",
+    requirements: [
+      { id: "r1", description: "영리법인을 수유자로 하는 유언·유증 계획", type: "other", critical: true },
+      { id: "r2", description: "2026.1.1 이후 개시 상속분", type: "period", critical: true },
+    ],
+    legalBasis: [
+      { law: "상속세 및 증여세법", article: "제3조의2 (영리법인이 유증받은 경우 등)", effectiveDate: "2026-01-01" },
+    ],
+    calculationParams: [
+      { id: "legacy_value", label: "유증 재산 가액", type: "number", unit: "원", required: true },
+      { id: "corp_share_ratio", label: "과세 대상 주주 지분 합계 (%)", type: "number", unit: "%", required: true },
+    ],
+    calculationFormula: "과세 대상 주주의 지분 비율 × 유증 재산가액에 해당하는 부분에 상속세율 적용",
+    urgency: "event_based",
+    difficulty: "expert",
+    steps: [
+      "① 영리법인에 유증을 계획 중인 경우 주주 구성 파악",
+      "② 상속인·배우자·직계비속·그 배우자 지분 합산",
+      "③ 2026.1.1 이후 상속 개시 시 과세 범위 확대 적용",
+      "④ 기존 유언장에 영리법인 수유자 조항이 있는 경우 세무사와 재검토",
+      "⑤ 법인 유증 대신 개인 직접 유증 방식으로 구조 변경 검토",
+    ],
+    contentHook: {
+      title: "법인에 재산 물려주는 유언장, 2026년부터 세금 더 냅니다",
+      hook: "며느리·사위도 상속세 대상! 가족법인 유증 전략 재검토 필요",
+      targetKeyword: "영리법인 수유자 상속세 2026",
+      estimatedViews: "medium",
+    },
+    warnings: [
+      "2026.1.1 이후 개시 상속분부터 적용 — 기존 유언장 재검토 권장",
+      "가족법인(배우자·자녀가 주주인 법인)에 재산 유증 시 세부담 시뮬레이션 필수",
+      "세무사·법무사 동시 검토 필요 (상속세+유언장 효력)",
+    ],
+  },
 ]
