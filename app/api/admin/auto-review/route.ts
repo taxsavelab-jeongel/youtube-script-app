@@ -120,10 +120,24 @@ export async function GET() {
     let status: 'approved' | 'needs_update' | 'rejected'
     let note: string
 
-    if (passRate >= 80) {
+    // 핵심 필수 항목 (법령 근거, 검증 상태, 적용 요건, 주의사항) 중 하나라도 없으면 반려
+    const coreChecks = [checks[0], checks[2], checks[3], checks[6]] // 법령 근거, 검증 상태, 적용 요건, 주의사항
+    const coreAllPass = coreChecks.every(c => c.pass)
+
+    if (!coreChecks[0].pass) {
+      // 법령 근거 없으면 반려
+      status = 'rejected'
+      note = `❌ 감수 반려 (${passRate}%, ${passCount}/${totalChecks}). 법령 근거 미등록 — 필수 항목 누락.`
+    } else if (passRate >= 60 && coreAllPass) {
+      // 핵심 4개 모두 통과 + 전체 60% 이상 → 승인
       status = 'approved'
-      note = `✅ AI 감수 통과 (${passRate}%, ${passCount}/${totalChecks}). 법령 근거·검증·요건·계산 공식 확인 완료.`
-    } else if (passRate >= 50) {
+      note = `✅ AI 감수 통과 (${passRate}%, ${passCount}/${totalChecks}). 법령 근거·검증·요건·주의사항 확인 완료.`
+    } else if (passRate >= 60) {
+      // 60% 이상이나 핵심 항목 일부 미흡 → 수정필요
+      status = 'needs_update'
+      const missing = coreChecks.filter(c => !c.pass).map(c => c.item).join(', ')
+      note = `⚠ 보완 필요 (${passRate}%, ${passCount}/${totalChecks}). 핵심 미흡 항목: ${missing}`
+    } else if (passRate >= 40) {
       status = 'needs_update'
       const missing = checks.filter(c => !c.pass).map(c => c.item).join(', ')
       note = `⚠ 보완 필요 (${passRate}%, ${passCount}/${totalChecks}). 미흡 항목: ${missing}`
