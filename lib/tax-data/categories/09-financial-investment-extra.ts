@@ -19,6 +19,20 @@ export const financialInvestmentExtra: TaxSavingItem[] = [
     calculationParams: [{ id: "deposit", label: "저축 금액", type: "number", unit: "원", max: 50_000_000, required: true }],
     calculationFormula: "이자·배당 × 15.4% = 절세액", urgency: "year_round", difficulty: "easy",
     steps: ["자격 요건 확인 (65세↑, 장애인 등)", "은행에서 비과세종합저축 가입", "5,000만원 한도 내 예치"],
+    warnings: [
+      "1인당 합산 5,000만원 한도는 모든 금융기관 합산 기준 — 여러 은행 분산 시 한도 초과 주의",
+      "65세 가입 조건은 가입일 기준으로 판단 — 만 64세에 가입 후 65세 도달해도 소급 적용 불가",
+      "ISA 계좌 등 다른 비과세 상품과 중복 가입 가능하나, 각 상품별 한도 관리 필요",
+    ],
+    practicalCases: [
+      {
+        title: "65세 이상 5,000만원 비과세종합저축 운용",
+        situation: "만 67세 은퇴자, 예금 5,000만원을 비과세종합저축에 예치. 연이율 3.5%.",
+        calculation: "이자 175만원. 일반 과세 시 175만원 × 15.4% = 26.95만원 세금. 비과세 적용 시 세금 0원.",
+        result: "연간 이자세금 약 27만원 절감",
+        taxSaved: 269500,
+      },
+    ],
   },
   {
     id: "fin_rural_special_tax",
@@ -38,6 +52,20 @@ export const financialInvestmentExtra: TaxSavingItem[] = [
     ],
     calculationFormula: "비과세 이자 × 15.4% = 절세액", urgency: "year_round", difficulty: "easy",
     steps: ["조합(신협/농협 등) 가입", "출자금·예탁금 납입", "이자 비과세 자동 적용"],
+    warnings: [
+      "출자금 비과세 1,000만원 + 예탁금 비과세 3,000만원은 각각 별도 한도 — 합산 4,000만원까지 비과세 가능하나 초과분은 과세",
+      "조합원 자격 유지가 필요하며, 자격 상실 시 비과세 혜택 소멸",
+      "ISA·비과세종합저축 등 다른 비과세 상품과 병행 활용 시 금융소득 종합과세 2천만원 기준선 관리 필요",
+    ],
+    practicalCases: [
+      {
+        title: "신협 출자금 1,000만원 + 예탁금 3,000만원 비과세 활용",
+        situation: "신협 조합원 가입 후 출자금 1,000만원, 예탁금 3,000만원 납입. 각각 연 3% 수익.",
+        calculation: "이자 합계 120만원. 일반 과세 시 120만원 × 15.4% = 18.48만원. 비과세 적용 시 0원.",
+        result: "연간 약 18만원 절감. 여러 조합 가입 시 한도 내에서 추가 절세 가능.",
+        taxSaved: 184800,
+      },
+    ],
   },
   {
     id: "fin_crypto_tax",
@@ -60,6 +88,15 @@ export const financialInvestmentExtra: TaxSavingItem[] = [
       "2026년 현재 비과세이나, 2027.1.1 시행 예정 (4차 유예 가능성도 있음)",
       "상속·증여 시에는 가상자산도 과세 대상 (유예와 무관)",
     ],
+    practicalCases: [
+      {
+        title: "2026년 비트코인 매매차익 1억원 비과세 확인",
+        situation: "2026년 중 비트코인 매입가 3억, 매도가 4억. 차익 1억원 발생.",
+        calculation: "2026년 현재 가상자산 과세 유예 중 → 과세 0원. 2027년 시행 시: (1억-250만원) × 22% = 2,145만원",
+        result: "2026년 매도 시 세금 0원 vs 2027년 이후 약 2,145만원 차이",
+        taxSaved: 21450000,
+      },
+    ],
     contentHook: { title: "비트코인 세금 2026년은 비과세! 2027년엔?", hook: "지금은 세금 0원, 하지만 내년부터 22% 과세 예정!", targetKeyword: "가상자산 과세 유예 2026", estimatedViews: "high" },
   },
   {
@@ -81,6 +118,20 @@ export const financialInvestmentExtra: TaxSavingItem[] = [
     calculationFormula: "과세대상 = 양도이익 - 양도손실. 음수면 세금 0원.", urgency: "year_end", difficulty: "medium",
     steps: ["연내 양도이익/손실 정리", "손실 종목 연내 매도하여 이익과 상계", "양도소득세 확정신고 시 통산 반영"],
     contentHook: { title: "손실 난 주식, 팔아야 세금 아끼는 이유", hook: "수익 1천만원+손실 500만원 = 세금 절반으로!", targetKeyword: "주식 양도손실 통산", estimatedViews: "medium" },
+    warnings: [
+      "손실 이월공제는 현재 국내 주식 양도소득세 체계에서는 적용 범위가 제한적 — 해외주식·장외주식 등 과세 대상 여부 확인 필수",
+      "손익통산은 동일 과세연도 내에서만 가능 — 전년도 손실을 당해연도 이익과 상계 불가",
+      "금투세 폐지(2025 확정)로 국내 상장주식은 대주주 외 양도세 비과세 유지 — 통산 실익은 해외주식 및 장외주식 중심",
+    ],
+    practicalCases: [
+      {
+        title: "해외주식 양도이익 2,000만원 + 손실 800만원 통산",
+        situation: "2026년 해외주식 A종목 이익 2,000만원, B종목 손실 800만원 발생. 기본공제 250만원.",
+        calculation: "통산 후 순이익 = 2,000만원 - 800만원 = 1,200만원. 기본공제 250만원 차감 → 950만원 × 22% = 209만원",
+        result: "손실 통산으로 세금 176만원 절감 (손실 미통산 시 2,000만원 기준 374만원 vs 통산 후 209만원)",
+        taxSaved: 1760000,
+      },
+    ],
   },
   {
     id: "fin_foreign_tax_credit",
@@ -102,6 +153,20 @@ export const financialInvestmentExtra: TaxSavingItem[] = [
     calculationFormula: "공제한도 = 산출세액 × (국외소득/전체소득). 공제액 = min(외국납부세액, 한도)",
     urgency: "year_end", difficulty: "medium",
     steps: ["외국납부 세금 증빙 확인 (W-8BEN 등)", "종합소득세 신고 시 외국납부세액공제 신청"],
+    warnings: [
+      "공제한도는 '산출세액 × 국외소득/전체소득' 공식으로 계산 — 한도 초과분은 당해연도 공제 불가 (5년 이월 가능)",
+      "미국 주식 배당에 대해 현지 원천징수세(15%)가 자동 공제되나, 국내 신고 누락 시 이중과세 구제 불가",
+      "해외 직접 투자 소득과 간접 투자(펀드) 소득의 외국납부세액공제 처리 방식이 다를 수 있으므로 세무사 확인 권장",
+    ],
+    practicalCases: [
+      {
+        title: "미국 주식 배당 1,000만원 외국납부세액공제",
+        situation: "미국 주식 배당 1,000만원 수령. 미국 원천징수세 15% = 150만원 납부. 국내 종합과세 대상.",
+        calculation: "국내 산출세액 × (1,000만원/전체소득 비율) = 공제한도. 외국납부세액 150만원이 한도 이내이면 전액 공제",
+        result: "이중과세 방지로 150만원 세액공제. 한도 내 전액 공제 시 국내 추가 납부세액 크게 감소",
+        taxSaved: 1500000,
+      },
+    ],
   },
   {
     id: "fin_nisa_savings",
@@ -119,5 +184,14 @@ export const financialInvestmentExtra: TaxSavingItem[] = [
     calculationFormula: "비과세 한도 내 투자수익 전액 비과세", urgency: "year_round", difficulty: "easy",
     steps: ["ISA/NISA 계좌 개설", "국내 상장주식/ETF 투자", "비과세 한도 확인"],
     warnings: ["국내투자형 ISA 세부 사항은 국회 확정 필요 — 최종안 확인 권장"],
+    practicalCases: [
+      {
+        title: "국내투자형 ISA(NISA) 활용 국내주식 수익 비과세",
+        situation: "NISA 계좌에서 국내 ETF 투자 후 연 600만원 수익 발생. 일반형 비과세 한도 500만원(논의 중 기준) 가정.",
+        calculation: "비과세 500만원 적용. 초과 100만원 × 9.9% = 9.9만원. 일반 과세 시 600만원 × 15.4% = 92.4만원 대비 절감",
+        result: "약 82만원 절세 (NISA 비과세 한도 최종 입법안 확정 후 재검토 필요)",
+        taxSaved: 820000,
+      },
+    ],
   },
 ]

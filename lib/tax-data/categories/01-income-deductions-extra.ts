@@ -19,6 +19,19 @@ export const incomeDeductionsExtra: TaxSavingItem[] = [
     calculationParams: [{ id: "senior_count", label: "70세 이상 부양가족 수", type: "number", unit: "명", required: true }],
     calculationFormula: "추가공제 = 70세 이상 부양가족 수 × 100만원", urgency: "year_end", difficulty: "easy",
     steps: ["70세 이상 부양가족 확인", "연말정산 시 추가공제 체크"],
+    warnings: [
+      "만 70세 기준은 해당 과세연도 12월 31일 기준으로 판단",
+      "기본공제 대상자가 아닌 경우 추가공제도 불가 — 기본공제 요건 먼저 충족 필요",
+    ],
+    practicalCases: [
+      {
+        title: "70세 이상 부모 2명 부양",
+        situation: "부모님 모두 72세, 소득 없음, 기본공제 대상 해당",
+        calculation: "2명 × 100만원 = 200만원 추가공제. 세율 15% 기준 30만원 추가 절감",
+        result: "기본공제 별도, 추가공제 200만원 적용",
+        taxSaved: 300_000,
+      },
+    ],
   },
   {
     id: "income_disabled_deduction",
@@ -35,6 +48,19 @@ export const incomeDeductionsExtra: TaxSavingItem[] = [
     calculationParams: [{ id: "disabled_count", label: "장애인 부양가족 수", type: "number", unit: "명", required: true }],
     calculationFormula: "추가공제 = 장애인 수 × 200만원", urgency: "year_end", difficulty: "easy",
     steps: ["장애인증명서 또는 중증환자 진단서 준비", "연말정산 시 제출"],
+    warnings: [
+      "장애인증명서 발급 기관 확인 필수 — 병원·복지관·국가보훈처 발급 서류 각각 다름",
+      "항시 치료 중증환자는 의료기관 발급 '장애인증명서' 필요 (장애인등록증과 별개)",
+    ],
+    practicalCases: [
+      {
+        title: "중증환자 부양 직장인",
+        situation: "항시 치료 필요한 배우자(중증환자) 부양, 총급여 5,000만원",
+        calculation: "장애인 추가공제 200만원, 세율 15% 기준 30만원 절감",
+        result: "기본공제 150만원 + 추가공제 200만원 = 350만원 소득공제",
+        taxSaved: 300_000,
+      },
+    ],
   },
   {
     id: "income_single_parent",
@@ -50,6 +76,19 @@ export const incomeDeductionsExtra: TaxSavingItem[] = [
     legalBasis: [{ law: "소득세법", article: "제51조의2", effectiveDate: "2026-01-01" }],
     calculationParams: [], calculationFormula: "100만원 추가공제",
     urgency: "year_end", difficulty: "easy", steps: ["해당 여부 확인", "연말정산 시 체크"],
+    warnings: [
+      "부녀자공제(50만원)와 중복 불가 — 한부모공제(100만원)가 유리하므로 한부모 선택",
+      "사실혼 배우자가 있는 경우 '배우자 없는 자' 요건 미충족",
+    ],
+    practicalCases: [
+      {
+        title: "한부모 가정 직장인",
+        situation: "이혼 후 자녀 1명 부양, 총급여 4,000만원",
+        calculation: "한부모 추가공제 100만원, 세율 15% 기준 15만원 절감",
+        result: "기본공제 + 한부모 추가공제 100만원 적용",
+        taxSaved: 150_000,
+      },
+    ],
   },
   {
     id: "income_insurance_premium",
@@ -66,6 +105,19 @@ export const incomeDeductionsExtra: TaxSavingItem[] = [
     calculationParams: [{ id: "premium", label: "연간 보험료", type: "number", unit: "원", max: 1_000_000, required: true }],
     calculationFormula: "공제액 = min(보험료, 100만원) × 12%", urgency: "year_end", difficulty: "easy",
     steps: ["보장성 보험 가입 여부 확인", "연말정산 간소화 자동 반영"],
+    warnings: [
+      "저축성 보험(만기 시 환급금 있는 상품)은 공제 불가 — 순수 보장성만 해당",
+      "피보험자가 본인·배우자·부양가족이어야 함 — 형제자매 등 부양 아닌 가족은 불가",
+    ],
+    practicalCases: [
+      {
+        title: "보장성 보험 연 100만원 납부",
+        situation: "본인 실손보험 + 암보험 합산 연 120만원 납부",
+        calculation: "min(120만, 100만) × 12% = 12만원 세액공제",
+        result: "연말정산 12만원 환급",
+        taxSaved: 120_000,
+      },
+    ],
   },
   {
     id: "income_youth_savings",
@@ -86,6 +138,20 @@ export const incomeDeductionsExtra: TaxSavingItem[] = [
     calculationFormula: "공제액 = min(납입액, 600만원) × 40%", urgency: "year_round", difficulty: "easy",
     steps: ["청년형 장기펀드 가입", "연 납입 (월 50만원)", "3~5년 유지"],
     contentHook: { title: "청년이라면 무조건 가입! 연 240만원 소득공제 펀드", hook: "월 50만원으로 세금 환급 + 투자수익 동시에!", targetKeyword: "청년형 장기펀드 소득공제", estimatedViews: "medium" },
+    warnings: [
+      "의무유지 기간(3년) 이전 해지 시 소득공제 받은 세금 추징",
+      "총급여 5,000만원 초과 또는 종합소득 3,800만원 초과 시 가입 불가",
+      "펀드 운용 손실은 별개 — 절세 혜택과 투자 리스크 분리해서 이해 필요",
+    ],
+    practicalCases: [
+      {
+        title: "29세 직장인 청년형 장기펀드 가입",
+        situation: "총급여 4,000만원, 월 50만원 × 12개월 = 600만원 납입",
+        calculation: "600만원 × 40% = 240만원 소득공제, 세율 15% 기준 36만원 절감",
+        result: "연 240만원 소득공제 + 투자 수익",
+        taxSaved: 360_000,
+      },
+    ],
   },
   {
     id: "income_donation_political",
@@ -102,6 +168,19 @@ export const incomeDeductionsExtra: TaxSavingItem[] = [
     calculationParams: [{ id: "amount", label: "정치자금 기부액", type: "number", unit: "원", required: true }],
     calculationFormula: "10만원 이하: 전액 공제. 초과분: 15~25%", urgency: "year_end", difficulty: "easy",
     steps: ["정당/후원회에 기부", "기부금 영수증 수령", "연말정산 반영"],
+    warnings: [
+      "정치자금법상 법인·단체의 정치자금 기부는 금지 — 개인만 가능",
+      "10만원 초과분의 세액공제는 3천만원 한도 — 거액 기부자는 구간별 확인 필요",
+    ],
+    practicalCases: [
+      {
+        title: "10만원 소액 정치자금 기부",
+        situation: "지지 정당에 10만원 기부",
+        calculation: "10만원 × 110/100 = 10만원 전액 세액공제",
+        result: "10만원 기부로 10만원 전액 환급 (실질 무상 기부 효과)",
+        taxSaved: 100_000,
+      },
+    ],
   },
   {
     id: "income_small_biz_mutual_aid",
@@ -123,5 +202,19 @@ export const incomeDeductionsExtra: TaxSavingItem[] = [
     urgency: "year_round", difficulty: "easy",
     steps: ["노란우산공제 가입 (중소기업중앙회)", "월 납입", "종합소득세 신고 시 소득공제 적용"],
     contentHook: { title: "소상공인 퇴직금 + 절세 동시에! 노란우산공제", hook: "매월 100만원씩 넣으면 연 500만원 소득공제!", targetKeyword: "노란우산공제 소득공제", estimatedViews: "medium" },
+    warnings: [
+      "폐업·사망 등 불가피한 사유 외 임의 해약 시 기납부 소득공제액 추징",
+      "법인 대표이사(오너)는 '법인사업자'이므로 노란우산 가입 불가 — 개인사업자만 해당",
+      "사업소득 기준으로 공제 한도 달라짐 — 매년 소득 확인 필요",
+    ],
+    practicalCases: [
+      {
+        title: "연소득 3,000만원 소상공인",
+        situation: "개인 음식점 사장, 사업소득 3,000만원, 월 납입 30만원",
+        calculation: "연 360만원 납입 → 공제한도 500만원 내 → 360만원 소득공제. 세율 15% 기준 54만원 절감",
+        result: "연 360만원 소득공제 + 퇴직금 적립 효과",
+        taxSaved: 540_000,
+      },
+    ],
   },
 ]

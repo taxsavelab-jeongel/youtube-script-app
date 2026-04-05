@@ -24,6 +24,20 @@ export const specialCases: TaxSavingItem[] = [
     urgency: "event_based", difficulty: "easy",
     steps: ["퇴직 전 IRP 계좌 개설", "퇴직금 전액 IRP로 이체 (60일 이내)", "55세 이후 연금으로 수령 계획"],
     contentHook: { title: "퇴직금 받으면 무조건 IRP로! 세금 40% 아끼는 법", hook: "그냥 받으면 세금 폭탄, IRP로 받으면 40% 절세!", targetKeyword: "퇴직금 IRP 이체 절세", estimatedViews: "high" },
+    warnings: [
+      "IRP 이체 후 55세 이전 중도 인출 시 기타소득세 16.5% + 퇴직소득세 추징 가능 — 이체 전 유동성 계획 필수",
+      "연금 수령은 10년 이상 분할 수령 시 세율 추가 감면 혜택 — 수령 기간 전략 설계 중요",
+      "IRP 내 운용 상품 선택에 따라 수익률이 달라지므로, 수수료 없는 상품 비교 및 운용 전략도 함께 검토 권장",
+    ],
+    practicalCases: [
+      {
+        title: "퇴직금 1억원 IRP 이체 후 연금 수령",
+        situation: "50세 직장인 퇴직, 퇴직금 1억원. 퇴직소득세 산출액 700만원.",
+        calculation: "IRP 이체 → 퇴직소득세 이연. 55세 이후 연금 수령 시 700만원 × 70% = 490만원 납부 (일시금 700만원 대비)",
+        result: "IRP 이체로 퇴직소득세 210만원 절감. 10년 분할 수령 시 추가 절감 가능.",
+        taxSaved: 2100000,
+      },
+    ],
   },
   {
     id: "special_inheritance_reform_prep",
@@ -53,5 +67,14 @@ export const specialCases: TaxSavingItem[] = [
     ],
     contentHook: { title: "2028 상속세 대변혁! 지금 준비 안 하면 수억 차이", hook: "자녀 3명이면 상속세가 절반으로? 유산취득세의 비밀", targetKeyword: "유산취득세 전환 2028", estimatedViews: "high" },
     warnings: ["아직 국회 심의 중으로 최종 확정 전까지 변동 가능"],
+    practicalCases: [
+      {
+        title: "상속인 3명 분산 시 유산취득세 절세 효과 (2028 시행 예정 기준)",
+        situation: "총 상속재산 30억원. 현행 유산세 vs 유산취득세 전환 후 자녀 3명 균등 분할 비교.",
+        calculation: "현행: 30억 전체에 누진과세 → 최고 세율구간 50% 적용. 유산취득세: 자녀 1인당 10억씩 취득 → 각각 세율구간 30% 구간 적용",
+        result: "유산취득세 전환 후 상속세 총액 약 3억~5억원 절감 효과 추정 (최종 세율 확정 후 재계산 필요)",
+        taxSaved: 400000000,
+      },
+    ],
   },
 ]

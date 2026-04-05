@@ -25,6 +25,20 @@ export const specialCasesExtra: TaxSavingItem[] = [
     urgency: "year_end", difficulty: "medium",
     steps: ["임대수입 2천만원 이하 확인", "분리과세 vs 종합과세 비교 시뮬레이션", "유리한 방식으로 종합소득세 신고"],
     contentHook: { title: "임대소득 세금, 14%면 끝? 종합과세와 비교 필수!", hook: "다른 소득 많으면 분리과세가 훨씬 유리!", targetKeyword: "주택임대소득 분리과세 2026", estimatedViews: "medium" },
+    warnings: [
+      "주택임대사업자 등록을 해야 필요경비 60% 적용 가능 — 미등록 시 50%로 줄어들어 절세 효과 감소",
+      "임대수입 2천만원 초과 시 무조건 종합과세 적용 — 연간 임대수입 합계 관리 필수",
+      "분리과세 선택 시 종합소득세 신고(5월)에서 직접 선택해야 하며, 무신고 시 종합과세로 자동 처리될 수 있음",
+    ],
+    practicalCases: [
+      {
+        title: "월세 수입 1,500만원, 다른 소득 5,000만원인 경우",
+        situation: "임대사업자 등록 완료, 연 월세 수입 1,500만원. 근로소득 5,000만원 별도.",
+        calculation: "분리과세: (1,500만-900만경비-400만공제) × 14% = 200만원 × 14% = 28만원. 종합과세: 합산세율 35% 구간 → 약 77만원",
+        result: "분리과세 선택 시 약 49만원 절세",
+        taxSaved: 490000,
+      },
+    ],
   },
   {
     id: "special_severance_transfer",
@@ -45,6 +59,20 @@ export const specialCasesExtra: TaxSavingItem[] = [
     calculationFormula: "환산급여 = (퇴직금-비과세-근속공제) ÷ 근속연수 × 12. 환산세액 = 환산급여에 세율 적용 ÷ 12 × 근속연수.",
     urgency: "event_based", difficulty: "hard",
     steps: ["근속연수 정확히 계산", "퇴직소득공제 적용", "연분연승 방식으로 세액 산출"],
+    warnings: [
+      "근속연수가 짧을수록 연분연승 효과가 감소하여 실효세율이 높아짐 — 조기 퇴직 시 세부담 증가 유의",
+      "퇴직소득공제 중 근속연수공제는 2016년 개정 이후 변경되었으므로, 입사 연도 따라 계산 방법이 달라질 수 있음",
+      "퇴직금 외 명예퇴직금·위로금 등 별도 수령액도 퇴직소득에 합산되므로 총액 기준으로 세액 산출 필요",
+    ],
+    practicalCases: [
+      {
+        title: "근속 20년 퇴직금 3억원 연분연승 세액 계산",
+        situation: "근속 20년, 퇴직금 3억원 일시 수령.",
+        calculation: "근속연수공제 적용 후 환산급여 산출. 환산급여에 세율 적용 → 환산세액 ÷ 12 × 20년. 실효세율 약 7~10% 수준",
+        result: "근속 20년으로 연분연승 적용 시 일반 종합소득 대비 세부담 대폭 경감. 실납 세액 약 2,100만~3,000만원 수준",
+        taxSaved: 5000000,
+      },
+    ],
   },
   {
     id: "special_year_end_timing",
@@ -66,6 +94,20 @@ export const specialCasesExtra: TaxSavingItem[] = [
     urgency: "year_end", difficulty: "medium",
     steps: ["올해·내년 소득 추정", "세율구간 경계 확인", "매출/비용 타이밍 조정", "증빙 일자 관리"],
     contentHook: { title: "연말에 이것만 하면 세금이 달라진다! 타이밍 절세법", hook: "12월 31일 vs 1월 1일, 하루 차이로 수십만원 절세!", targetKeyword: "연말 절세 타이밍", estimatedViews: "medium" },
+    warnings: [
+      "귀속연도 조정은 실제 거래·용역 제공 시점과 일치해야 하며, 인위적 날짜 조작은 조세 포탈에 해당할 수 있음",
+      "세금계산서 발행일·입금일·계약서 일자 등이 불일치하면 세무조사 시 소득 귀속 연도가 달리 판단될 수 있음",
+      "사업자 폐업 예정이거나 다음 해 소득이 대폭 감소 예상되는 경우에 한해 이연 전략이 유효 — 매년 소득이 유사하면 효과 미미",
+    ],
+    practicalCases: [
+      {
+        title: "연말 매출 이연으로 세율구간 낮추기",
+        situation: "프리랜서, 2026년 예상 소득 1억 5백만원 (세율 35% 구간 진입). 12월 청구서 1월로 이연 가능.",
+        calculation: "500만원 이연 시 2026년 소득 1억원 (24% 구간). 절세 효과: 500만원 × (35%-24%) = 55만원",
+        result: "매출 500만원 이연으로 약 55만원 절세",
+        taxSaved: 550000,
+      },
+    ],
   },
   {
     id: "special_nontaxable_allowance",
@@ -86,6 +128,20 @@ export const specialCasesExtra: TaxSavingItem[] = [
     calculationFormula: "비과세 합계 × 한계세율 = 절세 효과", urgency: "year_round", difficulty: "easy",
     steps: ["현재 급여에서 비과세 항목 분리 현황 확인", "누락된 비과세 항목 인사팀에 요청", "급여명세서에 비과세 항목 별도 표시 확인"],
     contentHook: { title: "월급에서 빠지는 세금, 이렇게 줄이세요! 비과세 총정리", hook: "식대+교통비+보육수당, 연 720만원까지 비과세!", targetKeyword: "비과세 근로소득 항목 2026", estimatedViews: "high" },
+    warnings: [
+      "비과세 항목은 실제 지급 사실이 있어야 인정 — 명목상 분리 후 실제 지급 없는 경우 세무조사 시 부인될 수 있음",
+      "식대 비과세(월 20만원)는 구내식당 운영 여부와 관계없이 적용되나, 현물 식사 제공과 중복 적용 불가",
+      "자가운전보조금은 본인 차량 사용 업무에 한정 — 대중교통 이용자에게 지급 시 비과세 요건 미충족",
+    ],
+    practicalCases: [
+      {
+        title: "비과세 항목 최대 활용 시 연간 절세 효과",
+        situation: "연봉 6,000만원 직장인. 식대 월 20만원, 자가운전보조금 월 20만원, 자녀 보육수당 월 20만원 적용.",
+        calculation: "연간 비과세 합계 720만원. 한계세율 24% 적용 시 720만원 × 24% = 172.8만원 세금 절감",
+        result: "비과세 항목 최대 활용 시 연간 약 173만원 절세",
+        taxSaved: 1728000,
+      },
+    ],
   },
   {
     id: "special_tax_saving_products",
@@ -108,5 +164,19 @@ export const specialCasesExtra: TaxSavingItem[] = [
     urgency: "year_round", difficulty: "easy",
     steps: ["현재 가입 상품 현황 점검", "누락된 상품 신규 가입", "연 납입 계획 수립", "자동이체 설정"],
     contentHook: { title: "연 400만원 절세하는 금융상품 조합 공개!", hook: "이 4가지만 가입하면 매년 400만원 돌려받습니다!", targetKeyword: "절세 금융상품 조합 2026", estimatedViews: "high" },
+    warnings: [
+      "각 상품별 소득 요건·납입 한도·만기 조건이 다르므로 가입 전 개별 요건 반드시 확인",
+      "연금저축+IRP 세액공제 한도(900만원)는 합산 기준 — 연금저축 단독 600만원, IRP 포함 합산 900만원으로 초과 납입분은 공제 불가",
+      "ISA 의무가입 3년 충족 전 중도해지 시 비과세 혜택 소멸 — 단기 자금 운용 용도로 활용 부적합",
+    ],
+    practicalCases: [
+      {
+        title: "절세 금융상품 풀세팅 — 연간 절세 효과 계산",
+        situation: "연봉 6,000만원 직장인. 연금저축 600만원 + IRP 300만원 + ISA 2,000만원 납입.",
+        calculation: "연금저축+IRP 세액공제: 900만원 × 13.2%(세율+지방세) = 118.8만원. ISA 비과세 수익 200만원 × 15.4% = 30.8만원 절감. 합계 약 150만원",
+        result: "연간 약 150만원 절세 (수익률에 따라 변동)",
+        taxSaved: 1500000,
+      },
+    ],
   },
 ]
