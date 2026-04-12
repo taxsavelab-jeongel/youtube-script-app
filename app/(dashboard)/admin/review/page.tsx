@@ -164,6 +164,28 @@ export default function AdminReviewPage() {
             >
               🤖 AI 일괄 감수
             </button>
+            <button
+              onClick={() => {
+                if (!confirm('모든 항목을 승인 처리합니다. 계속할까요?')) return
+                const saved = localStorage.getItem('tax_reviews')
+                const existing = saved ? JSON.parse(saved) : {}
+                const allApproved = items.reduce((acc, item) => ({
+                  ...acc,
+                  [item.id]: {
+                    ...existing[item.id],
+                    status: 'approved',
+                    by: reviewerName || '일괄승인',
+                    at: new Date().toISOString(),
+                    note: existing[item.id]?.note || '',
+                  },
+                }), {} as Record<string, { status: string; by: string; at: string; note: string }>)
+                localStorage.setItem('tax_reviews', JSON.stringify(allApproved))
+                window.location.reload()
+              }}
+              className="text-sm px-4 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              ✅ 전체 승인
+            </button>
             <button onClick={exportReview} className="text-sm px-4 py-1.5 bg-gray-800 text-white rounded-lg hover:bg-gray-900">
               CSV 내보내기
             </button>
